@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	CHUNKSIZE = 27
+	CHUNKSIZE = 24
 )
 
 type crypter struct {
@@ -38,30 +38,67 @@ func (c *crypter) Encrypt(w io.Writer, r io.Reader) (nOut int64, errOut error) {
 	br := bufio.NewReader(r)
 
 	// internal chunk size and counter
-	chunk := make([]byte, CHUNKSIZE-1)
+	size := CHUNKSIZE
+	chunk := make([]byte, size)
 	nonce := NewNonceCounter()
 
 	for {
 
-		n, err := io.ReadFull(br, chunk[:CHUNKSIZE-1])
+		n, err := io.ReadFull(br, chunk[:size-1])
 		last := isLast(br)
 		if n > 0 {
 			if last {
-				stderr("this is the last chunk")
+				//stderr("this is the last chunk")
 			}
-			stderr(sfmt("next chunk %d, %d bytes", nonce.ctr, n))
-			chunk = Pad(chunk[:n], CHUNKSIZE, last)
-			ct := c.aead.Seal(nil, nonce.Next(), chunk[:n], nil)
-			nw, err := w.Write(ct)
+			stderr(sfmt("output chunk % 3d, % 3d bytes: % x", nonce.ctr, n, chunk[:n]))
+			chunk = Pad(chunk[:n], size, last)
+			//ct := c.aead.Seal(nil, nonce.Next(), chunk[:n], nil)
+			nw, err := w.Write(chunk)
 			nOut += int64(nw)
 			if err != nil {
 				errOut = err
 				return
 			}
 		}
-		if false { //err == io.EOF || err == io.ErrUnexpectedEOF {
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
 			break
 		} else if err != nil {
+			errOut = err
+			return
+		}
+
+	}
+	return
+
+}
+
+func (c *crypter) Decrypt(w io.Writer, r io.Reader) (nOut int64, errOut error) {
+
+	// buffered reader
+	br := bufio.NewReader(r)
+
+	// encrypted chunk size and counter
+	size := CHUNKSIZE // + c.aead.Overhead()
+	chunk := make([]byte, size)
+	nonce := NewNonceCounter()
+
+	for {
+
+		n, err := io.ReadFull(br, chunk[:size])
+		if n > 0 {
+			stderr(sfmt("input  chunk % 3d, % 3d bytes: % x", nonce.ctr, n, chunk[:n]))
+			unp, last := Unpad(chunk[:n])
+			nw, err := w.Write(unp)
+			nOut += int64(nw)
+			if err != nil {
+				errOut = err
+				return
+			}
+			if last {
+				break
+			}
+		}
+		if err != nil {
 			errOut = err
 			return
 		}

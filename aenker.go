@@ -1,19 +1,26 @@
 package main
 
 import (
+	"bytes"
 	"os"
 	"strings"
 )
 
 func main() {
 
-	reader := strings.NewReader("Clear is better than clever")
-	writer := os.Stdout
+	reader := strings.NewReader("Clear is better than clever.\n")
+	// stderr(sfmt("reader has %d bytes", reader.Len()))
 
-	stderr(sfmt("reader has %d bytes", reader.Len()))
-	n, err := newCrypter().Encrypt(writer, reader)
-	stderr(sfmt("wrote %d bytes", n))
+	writer := os.Stdout
+	var buffer bytes.Buffer
+
+	_, err := newCrypter().Encrypt(&buffer, reader)
+	// stderr(sfmt("wrote %d bytes", n))
 	if err != nil {
 		stderr(err)
 	}
+
+	//io.Copy(os.Stderr, &buffer)
+	newCrypter().Decrypt(writer, &buffer)
+
 }

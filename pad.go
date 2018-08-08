@@ -2,11 +2,12 @@ package main
 
 const (
 	RunningChunk  = 0
-	PaddedChunk   = 1
-	UnPaddedChunk = 2
+	UnPaddedChunk = 1
+	PaddedChunk   = 2
+	Invalid       = 3
 )
 
-func Pad(chunk []byte, size int, last bool) []byte {
+func Pad(chunk []byte, size int, last bool) (out []byte) {
 
 	if !last {
 		return append(chunk, RunningChunk)
@@ -42,6 +43,51 @@ func Pad(chunk []byte, size int, last bool) []byte {
 	}
 
 	// append to slice
-	return append(chunk, pad...)
+	out = append(chunk, pad...)
+	return
+
+}
+
+//! this is definitely not constant time ...
+func Unpad(chunk []byte) (out []byte, last bool) {
+
+	// length of chunk
+	l := len(chunk)
+
+	// get last byte
+	lb := chunk[l-1]
+	if lb >= Invalid {
+		panic(sfmt("bad padding: %x", lb))
+	}
+
+	// truncate
+	out = chunk[:l-1]
+	l--
+
+	// is this the last chunk
+	last = lb != RunningChunk
+
+	// remove padding if present
+	if lb == PaddedChunk {
+
+		// second to last byte
+		slb := out[l-1]
+		if slb != 0x00 && slb != 0x01 {
+			panic(sfmt("bad padding: %x", slb))
+		}
+
+		// find first non-padding
+		var cut int
+		for i := range out {
+			if slb != out[l-i-1] {
+				cut = i
+				break
+			}
+		}
+		out = out[:l-cut]
+
+	}
+
+	return
 
 }
