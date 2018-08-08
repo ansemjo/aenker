@@ -11,37 +11,32 @@ import (
 )
 
 type crypter struct {
-	reader io.Reader
-	aead   cipher.AEAD
-	nonce  []byte
+	aead cipher.AEAD
 }
 
-func newCrypter(reader io.Reader) *crypter {
-
-	// init zero key and nonce
+// init an aead crypter
+func newCrypter() *crypter {
+	// init with zero key
 	key := make([]byte, chacha20poly1305.KeySize)
-	nonce := make([]byte, chacha20poly1305.NonceSize)
-
 	aead, err := chacha20poly1305.New(key)
 	if err != nil {
 		panic("AEAD init failed")
 	}
-
-	return &crypter{
-		reader: reader,
-		aead:   aead,
-		nonce:  nonce,
-	}
+	return &crypter{aead: aead}
 }
 
-func (c *crypter) WriteTo(w io.Writer) (nOut int64, errOut error) {
+func (c *crypter) Encrypt(w io.Writer, r io.Reader) (nOut int64, errOut error) {
 
-	buf := make([]byte, 32)
+	// internal chunk size and counter
+	chunk := make([]byte, 32)
+	nonce := NewNonceCounter()
+	fmt.Println(len(nonce.Next()))
+
 	for {
 
-		n, err := io.ReadFull(c.reader, buf)
+		n, err := io.ReadFull(r, chunk)
 		if n > 0 {
-			ct := c.aead.Seal(nil, c.nonce, buf[:n], nil)
+			ct := c.aead.Seal(nil, nonce.Next(), chunk[:n], nil)
 			nw, err := w.Write(ct)
 			nOut += int64(nw)
 			if err != nil {
@@ -57,7 +52,6 @@ func (c *crypter) WriteTo(w io.Writer) (nOut int64, errOut error) {
 		}
 
 	}
-
 	return
 
 }
@@ -68,7 +62,7 @@ func main() {
 	writer := os.Stdout
 	fmt.Fprintln(os.Stderr, "reader has", reader.Len(), "bytes")
 
-	n, err := newCrypter(reader).WriteTo(writer)
+	n, err := newCrypter().Encrypt(writer, reader)
 	fmt.Fprintln(os.Stderr, "wrote", n, "bytes")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
