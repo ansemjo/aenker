@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/cipher"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -35,13 +36,12 @@ func newCrypter(reader io.Reader) *crypter {
 
 func (c *crypter) WriteTo(w io.Writer) (nOut int64, errOut error) {
 
-	buf := make([]byte, 8)
+	buf := make([]byte, 32)
 	for {
 
-		n, err := c.reader.Read(buf)
+		n, err := io.ReadFull(c.reader, buf)
 		if n > 0 {
 			ct := c.aead.Seal(nil, c.nonce, buf[:n], nil)
-			ct = append(ct, 0x00)
 			nw, err := w.Write(ct)
 			nOut += int64(nw)
 			if err != nil {
@@ -49,7 +49,7 @@ func (c *crypter) WriteTo(w io.Writer) (nOut int64, errOut error) {
 				return
 			}
 		}
-		if err == io.EOF {
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
 			break
 		} else if err != nil {
 			errOut = err
@@ -66,6 +66,11 @@ func main() {
 
 	reader := strings.NewReader("Clear is better than clever")
 	writer := os.Stdout
+	fmt.Fprintln(os.Stderr, "reader has", reader.Len(), "bytes")
 
-	newCrypter(reader).WriteTo(writer)
+	n, err := newCrypter(reader).WriteTo(writer)
+	fmt.Fprintln(os.Stderr, "wrote", n, "bytes")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
