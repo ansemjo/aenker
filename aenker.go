@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"strings"
 )
@@ -12,18 +13,21 @@ func main() {
 	// stderr(sfmt("reader has %d bytes", reader.Len()))
 
 	writer := os.Stdout
-	var buffer bytes.Buffer
+	var midbuf bytes.Buffer
+	var outbuf bytes.Buffer
 
-	_, err := newCrypter().Encrypt(&buffer, reader)
+	_, err := newCrypter().Encrypt(&midbuf, reader)
 	// stderr(sfmt("wrote %d bytes", n))
 	if err != nil {
-		stderr(err)
+		panic(err)
 	}
 
 	//io.Copy(os.Stderr, &buffer)
-	_, err = newCrypter().Decrypt(writer, &buffer)
+	_, err = newCrypter().Decrypt(&outbuf, &midbuf)
 	if err != nil {
-		stderr(err)
+		panic(err)
 	}
+
+	io.Copy(writer, &outbuf)
 
 }
