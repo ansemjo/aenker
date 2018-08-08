@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	CHUNKSIZE = 24
+	CHUNKSIZE = 16
 )
 
 type crypter struct {
@@ -52,8 +52,9 @@ func (c *crypter) Encrypt(w io.Writer, r io.Reader) (nOut int64, errOut error) {
 			}
 			stderr(sfmt("output chunk % 3d, % 3d bytes: % x", nonce.ctr, n, chunk[:n]))
 			chunk = Pad(chunk[:n], size, last)
-			//ct := c.aead.Seal(nil, nonce.Next(), chunk[:n], nil)
-			nw, err := w.Write(chunk)
+			ct := c.aead.Seal(nil, nonce.Next(), chunk[:size], nil)
+			stderr(sfmt("cipher chunk % 3d, % 3d bytes: % x", nonce.ctr-1, len(ct), ct))
+			nw, err := w.Write(ct)
 			nOut += int64(nw)
 			if err != nil {
 				errOut = err
@@ -78,16 +79,22 @@ func (c *crypter) Decrypt(w io.Writer, r io.Reader) (nOut int64, errOut error) {
 	br := bufio.NewReader(r)
 
 	// encrypted chunk size and counter
-	size := CHUNKSIZE // + c.aead.Overhead()
+	size := CHUNKSIZE + c.aead.Overhead()
 	chunk := make([]byte, size)
 	nonce := NewNonceCounter()
 
 	for {
 
-		n, err := io.ReadFull(br, chunk[:size])
+		n, err := io.ReadFull(br, chunk)
 		if n > 0 {
 			stderr(sfmt("input  chunk % 3d, % 3d bytes: % x", nonce.ctr, n, chunk[:n]))
-			unp, last := Unpad(chunk[:n])
+			pt, err := c.aead.Open(nil, nonce.Next(), chunk[:n], nil)
+			if err != nil {
+				errOut = err
+				return
+			}
+			stderr(sfmt("plain  chunk % 3d, % 3d bytes: % x", nonce.ctr-1, len(pt), pt))
+			unp, last := Unpad(pt)
 			nw, err := w.Write(unp)
 			nOut += int64(nw)
 			if err != nil {

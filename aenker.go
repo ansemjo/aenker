@@ -21,6 +21,9 @@ func main() {
 	}
 
 	//io.Copy(os.Stderr, &buffer)
-	newCrypter().Decrypt(writer, &buffer)
+	_, err = newCrypter().Decrypt(writer, &buffer)
+	if err != nil {
+		stderr(err)
+	}
 
 }
