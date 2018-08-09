@@ -1,7 +1,8 @@
 package error
 
-// Error is a constant-expression error
+// ConstError is a constant-expression error
 // (https://dave.cheney.net/2016/04/07/constant-errors)
-type Error string
+type ConstError string
 
-func (e Error) Error() string { return string(e) }
+// Error makes this const compatible with the Error interface
+func (e ConstError) Error() string { return string(e) }
