@@ -4,6 +4,9 @@ import ce "github.com/ansemjo/aenker/error"
 
 const (
 
+	// KeyLength is the length of the required key in bytes
+	KeyLength = 32
+
 	// ChunkSize is the amount of plaintext that is encrypted per chunk
 	ChunkSize = 256
 
