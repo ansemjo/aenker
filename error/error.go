@@ -1,4 +1,4 @@
-package main
+package error
 
 // Error is a constant-expression error
 // (https://dave.cheney.net/2016/04/07/constant-errors)

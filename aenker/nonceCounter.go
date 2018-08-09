@@ -1,4 +1,4 @@
-package main
+package aenker
 
 import "encoding/binary"
 

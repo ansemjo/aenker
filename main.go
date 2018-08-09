@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ansemjo/aenker/aenker"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -26,7 +27,7 @@ func main() {
 	var outbuf bytes.Buffer
 
 	zerokey := make([]byte, chacha20poly1305.KeySize)
-	ae, err := NewAenker(zerokey)
+	ae, err := aenker.NewAenker(zerokey)
 	fatal(err)
 
 	_, err = ae.Encrypt(&midbuf, reader)
@@ -36,7 +37,7 @@ func main() {
 	midbuf.WriteString("blablabla")
 
 	_, err = ae.Decrypt(&outbuf, &midbuf)
-	if err == ErrExtraData {
+	if err == aenker.ErrExtraData {
 		fmt.Fprintln(os.Stderr, fmt.Sprintf("WARN: %s", err.Error()))
 	} else {
 		fatal(err)

@@ -1,4 +1,4 @@
-package main
+package padding
 
 const (
 	RunningChunk  = 0
@@ -57,7 +57,8 @@ func Unpad(chunk []byte) (out []byte, last bool) {
 	// get last byte
 	lb := chunk[l-1]
 	if lb >= Invalid {
-		panic(sfmt("bad padding: %x", lb))
+		//panic(sfmt("bad padding: %x", lb))
+		panic("bad padding")
 	}
 
 	// truncate
@@ -73,7 +74,8 @@ func Unpad(chunk []byte) (out []byte, last bool) {
 		// second to last byte
 		slb := out[l-1]
 		if slb != 0x00 && slb != 0x01 {
-			panic(sfmt("bad padding: %x", slb))
+			//panic(sfmt("bad padding: %x", slb))
+			panic("bad padding")
 		}
 
 		// find first non-padding

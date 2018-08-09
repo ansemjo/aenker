@@ -1,10 +1,12 @@
-package main
+package aenker
 
 import (
 	"bufio"
 	"crypto/cipher"
 	"io"
 
+	constError "github.com/ansemjo/aenker/error"
+	padding "github.com/ansemjo/aenker/padding"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -20,7 +22,7 @@ const (
 	ChunkSize = 256
 
 	// ErrExtraData indicates that there is extra data appended to the ciphertext
-	ErrExtraData = Error("aenker: extraneous data after ciphertext")
+	ErrExtraData = constError.Error("aenker: extraneous data after ciphertext")
 )
 
 // Aenker is a struct that supports a sort of "streamed" AEAD usage,
@@ -73,7 +75,7 @@ func (a *Aenker) Encrypt(w io.Writer, r io.Reader) (lengthWritten int64, error e
 		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
 
 			// TODO: work on original slice, so chunk[:size] is not needed
-			chunk = Pad(chunk[:nr], size, final)                    // add padding to plaintext
+			chunk = padding.Pad(chunk[:nr], size, final)            // add padding to plaintext
 			ct := a.aead.Seal(nil, nonce.Next(), chunk[:size], nil) // encrypt padded data, increment nonce
 			nw, wErr := w.Write(ct)                                 // write ciphertext to writer
 			lengthWritten += int64(nw)                              // update output length
@@ -112,10 +114,10 @@ func (a *Aenker) Decrypt(w io.Writer, r io.Reader) (lengthWritten int64, error e
 				return
 			}
 
-			pt, final := Unpad(pt)     // remove padding from plaintext, pad indicates if this is the last chunk
-			nw, wErr := w.Write(pt)    // write plaintext to writer
-			lengthWritten += int64(nw) // update output length
-			if wErr != nil {           // an error occurred during write
+			pt, final := padding.Unpad(pt) // remove padding from plaintext, pad indicates if this is the last chunk
+			nw, wErr := w.Write(pt)        // write plaintext to writer
+			lengthWritten += int64(nw)     // update output length
+			if wErr != nil {               // an error occurred during write
 				error = wErr
 				return
 			}
