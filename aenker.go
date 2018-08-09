@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -31,8 +32,15 @@ func main() {
 	_, err = ae.Encrypt(&midbuf, reader)
 	fatal(err)
 
+	// add extra data
+	midbuf.WriteString("blablabla")
+
 	_, err = ae.Decrypt(&outbuf, &midbuf)
-	fatal(err)
+	if err == ErrExtraData {
+		fmt.Fprintln(os.Stderr, fmt.Sprintf("WARN: %s", err.Error()))
+	} else {
+		fatal(err)
+	}
 
 	io.Copy(writer, &outbuf)
 

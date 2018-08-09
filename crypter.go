@@ -15,8 +15,12 @@ const encrypt mode = 0
 const decrypt mode = 1
 
 const (
-	// CHUNKSIZE is the amount of plaintext that is encrypted per chunk
-	CHUNKSIZE = 256
+
+	// ChunkSize is the amount of plaintext that is encrypted per chunk
+	ChunkSize = 256
+
+	// ErrExtraData indicates that there is extra data appended to the ciphertext
+	ErrExtraData = Error("aenker: extraneous data after ciphertext")
 )
 
 // Aenker is a struct that supports a sort of "streamed" AEAD usage,
@@ -34,43 +38,9 @@ func NewAenker(key []byte) (ae *Aenker, keyerror error) {
 
 // find out if the reader is exhausted by
 // peeking ahead one byte
-func isLast(r *bufio.Reader) bool {
+func eof(r *bufio.Reader) bool {
 	_, err := r.Peek(1)
 	return err == io.EOF
-}
-
-// Encrypt reads from the given Reader, chunks the plaintext into
-// equal parts, pads and encrypts them with an AEAD and writes ciphertext
-// to the given Writer
-func (a *Aenker) Encrypt(w io.Writer, r io.Reader) (nOut int64, error error) {
-
-	size, buf, chunk, nonce := a.initCommon(r, encrypt)
-	for {
-
-		n, err := io.ReadFull(buf, chunk[:size-1])
-		last := isLast(buf)
-		if n > 0 {
-			//stderr(sfmt("output chunk % 3d, % 3d bytes: % x", nonce.ctr, n, chunk[:n]))
-			chunk = Pad(chunk[:n], size, last)
-			ct := a.aead.Seal(nil, nonce.Next(), chunk[:size], nil)
-			//stderr(sfmt("cipher chunk % 3d, % 3d bytes: % x", nonce.ctr-1, len(ct), ct))
-			nw, err := w.Write(ct)
-			nOut += int64(nw)
-			if err != nil {
-				error = err
-				return
-			}
-		}
-		if err == io.EOF || err == io.ErrUnexpectedEOF {
-			break
-		} else if err != nil {
-			error = err
-			return
-		}
-
-	}
-	return
-
 }
 
 // perform some common initialization for encryption and decryption
@@ -78,9 +48,9 @@ func (a *Aenker) initCommon(r io.Reader, mode mode) (
 	size int, bufferedReader *bufio.Reader, chunk []byte, nonce *NonceCounter) {
 
 	if mode == encrypt {
-		size = CHUNKSIZE
+		size = ChunkSize
 	} else {
-		size = CHUNKSIZE + a.aead.Overhead()
+		size = ChunkSize + a.aead.Overhead()
 	}
 	//? TODO: does NewReaderSize make sense? apply size constraints?
 	bufferedReader = bufio.NewReader(r)
@@ -90,33 +60,73 @@ func (a *Aenker) initCommon(r io.Reader, mode mode) (
 
 }
 
-func (a *Aenker) Decrypt(w io.Writer, r io.Reader) (nOut int64, errOut error) {
+// Encrypt reads from the given Reader, chunks the plaintext into
+// equal parts, pads and encrypts them with an AEAD and writes ciphertext
+// to the given Writer
+func (a *Aenker) Encrypt(w io.Writer, r io.Reader) (lengthWritten int64, error error) {
 
-	_, buf, chunk, nonce := a.initCommon(r, decrypt)
+	size, buf, chunk, nonce := a.initCommon(r, encrypt) // initialize needed structures
 	for {
 
-		n, err := io.ReadFull(buf, chunk)
-		if n > 0 {
-			//stderr(sfmt("input  chunk % 3d, % 3d bytes: % x", nonce.ctr, n, chunk[:n]))
-			pt, err := a.aead.Open(nil, nonce.Next(), chunk[:n], nil)
-			if err != nil {
-				errOut = err
+		nr, rErr := io.ReadFull(buf, chunk[:size-1])                // read and leave room for pad
+		final := eof(buf)                                           // check if this is the last chunk
+		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
+
+			// TODO: work on original slice, so chunk[:size] is not needed
+			chunk = Pad(chunk[:nr], size, final)                    // add padding to plaintext
+			ct := a.aead.Seal(nil, nonce.Next(), chunk[:size], nil) // encrypt padded data, increment nonce
+			nw, wErr := w.Write(ct)                                 // write ciphertext to writer
+			lengthWritten += int64(nw)                              // update output length
+			if wErr != nil {                                        // an error occurred during write
+				error = wErr
 				return
 			}
-			//stderr(sfmt("plain  chunk % 3d, % 3d bytes: % x", nonce.ctr-1, len(pt), pt))
-			unp, last := Unpad(pt)
-			nw, err := w.Write(unp)
-			nOut += int64(nw)
-			if err != nil {
-				errOut = err
+
+		} else { // possibly fatal error occurred during read
+			error = rErr
+			return
+		}
+		if final { // this was the last chunk, we're done
+			break
+		}
+	}
+	return
+
+}
+
+// Decrypt read ciphertext from the given reader, chunks the AEAD-encrypted blocks,
+// attempts to decrypt and verify them and finally writes the original plaintext
+// to the given Writer
+func (a *Aenker) Decrypt(w io.Writer, r io.Reader) (lengthWritten int64, error error) {
+
+	_, buf, chunk, nonce := a.initCommon(r, decrypt) // initialize needed structures
+	for {
+
+		nr, rErr := io.ReadFull(buf, chunk)                         // read what is supposed to be a ciphertext chunk
+		more := !eof(buf)                                           // check if there is more data
+		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
+
+			pt, cErr := a.aead.Open(nil, nonce.Next(), chunk[:nr], nil) // decrypt and verify data, increment nonce
+			if cErr != nil {                                            // an error occurred during decryption
+				error = cErr
 				return
 			}
-			if last {
+
+			pt, final := Unpad(pt)     // remove padding from plaintext, pad indicates if this is the last chunk
+			nw, wErr := w.Write(pt)    // write plaintext to writer
+			lengthWritten += int64(nw) // update output length
+			if wErr != nil {           // an error occurred during write
+				error = wErr
+				return
+			}
+			if final { // this was the last chunk, we're done
+				if more { // but the was extraneous data
+					error = ErrExtraData // set informative error
+				}
 				break
 			}
-		}
-		if err != nil {
-			errOut = err
+		} else { // possibly fatal error occurred during read
+			error = rErr
 			return
 		}
 
