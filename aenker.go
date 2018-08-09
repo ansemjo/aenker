@@ -5,7 +5,15 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"golang.org/x/crypto/chacha20poly1305"
 )
+
+func fatal(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
 func main() {
 
@@ -16,17 +24,15 @@ func main() {
 	var midbuf bytes.Buffer
 	var outbuf bytes.Buffer
 
-	_, err := newCrypter().Encrypt(&midbuf, reader)
-	// stderr(sfmt("wrote %d bytes", n))
-	if err != nil {
-		panic(err)
-	}
+	zerokey := make([]byte, chacha20poly1305.KeySize)
+	ae, err := NewAenker(zerokey)
+	fatal(err)
 
-	//io.Copy(os.Stderr, &buffer)
-	_, err = newCrypter().Decrypt(&outbuf, &midbuf)
-	if err != nil {
-		panic(err)
-	}
+	_, err = ae.Encrypt(&midbuf, reader)
+	fatal(err)
+
+	_, err = ae.Decrypt(&outbuf, &midbuf)
+	fatal(err)
 
 	io.Copy(writer, &outbuf)
 
