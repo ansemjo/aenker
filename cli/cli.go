@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var root = &cobra.Command{
+var rootCmd = &cobra.Command{
 	Use:   "aenker",
 	Short: "aenker is an authenticated encryptor",
 	Long: `aenker is a tool that operates an AEAD
@@ -20,7 +20,7 @@ parts.`,
 }
 
 func Execute() {
-	if err := root.Execute(); err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }

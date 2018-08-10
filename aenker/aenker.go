@@ -10,11 +10,12 @@ import (
 // where the plaintext is split into equal parts and encrypted with
 // an interMAClib-like construction
 type Aenker struct {
-	aead cipher.AEAD
+	aead      cipher.AEAD
+	chunksize int
 }
 
 // NewAenker return a new Aenker with initialized cipher
-func NewAenker(key []byte) (ae *Aenker, keyerror error) {
+func NewAenker(key []byte, chunksize int) (ae *Aenker, keyerror error) {
 	aead, err := chacha20poly1305.New(key)
-	return &Aenker{aead}, err
+	return &Aenker{aead, chunksize}, err
 }

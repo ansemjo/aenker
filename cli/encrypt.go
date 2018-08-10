@@ -9,10 +9,10 @@ import (
 )
 
 func init() {
-	root.AddCommand(encryptCmd)
+	rootCmd.AddCommand(encryptCmd)
 	encryptCmd.Flags().SortFlags = false
 	addKeyFlags(encryptCmd)
-	addChunkSize(encryptCmd)
+	addChunkSizeFlag(encryptCmd)
 
 }
 
@@ -32,7 +32,7 @@ var encryptCmd = &cobra.Command{
 
 func encrypt(cmd *cobra.Command, args []string) {
 
-	ae, _ := aenker.NewAenker(key)
+	ae, _ := aenker.NewAenker(key, chunksize)
 
 	if cmd.Flag("chunksize").Changed {
 		fmt.Fprintln(os.Stderr, "requested chunksize:", chunksize)

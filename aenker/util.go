@@ -17,9 +17,9 @@ func (a *Aenker) initializeMode(r io.Reader, mode mode) (
 	size int, bufferedReader *bufio.Reader, chunk []byte, nonce *Nonce) {
 
 	if mode == encrypt {
-		size = ChunkSize
+		size = a.chunksize
 	} else {
-		size = ChunkSize + a.aead.Overhead()
+		size = a.chunksize + a.aead.Overhead()
 	}
 	//? TODO: does NewReaderSize make sense? apply size constraints?
 	bufferedReader = bufio.NewReader(r)

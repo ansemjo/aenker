@@ -9,16 +9,21 @@ import (
 )
 
 func init() {
-	root.AddCommand(decryptCmd)
+	rootCmd.AddCommand(decryptCmd)
 	decryptCmd.Flags().SortFlags = false
 	addKeyFlags(decryptCmd)
+	addChunkSizeFlag(decryptCmd)
 }
 
 var decryptCmd = &cobra.Command{
 	Use:   "d",
 	Short: "decrypt a file",
 	Long:  "decrypt stdin and place the plaintext in stdout",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
+	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		err = parseChunkSize(cmd)
+		if err != nil {
+			return
+		}
 		return checkKeyFlags(cmd)
 	},
 	Run: decrypt,
@@ -26,7 +31,7 @@ var decryptCmd = &cobra.Command{
 
 func decrypt(cmd *cobra.Command, args []string) {
 
-	ae, _ := aenker.NewAenker(key)
+	ae, _ := aenker.NewAenker(key, chunksize)
 
 	lw, err := ae.Decrypt(os.Stdout, os.Stdin)
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	root.AddCommand(keygen)
+	rootCmd.AddCommand(keygen)
 }
 
 var keygen = &cobra.Command{
