@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	root.AddCommand(demo)
+	//root.AddCommand(demo)
 }
 
 var demo = &cobra.Command{

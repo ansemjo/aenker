@@ -10,7 +10,10 @@ import (
 
 func init() {
 	root.AddCommand(encryptCmd)
+	encryptCmd.Flags().StringVarP(&outputFile, "output", "o", "", "optional file to write to")
 }
+
+var outputFile string
 
 var encryptCmd = &cobra.Command{
 	Use:   "enc",

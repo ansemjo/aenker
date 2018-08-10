@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -10,18 +9,18 @@ import (
 var root = &cobra.Command{
 	Use:   "aenker",
 	Short: "aenker is an authenticated encryptor",
-	Long: `A Fast and Flexible Static Site Generator built with
-love by spf13 and friends in Go.
-Complete documentation is available at http://hugo.spf13.com`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("root command ...")
-		cmd.Usage()
-	},
+	Long: `aenker is a tool that operates an AEAD
+(ChaCha20Poly1305) in a streamable way
+by chunking the input in equally-sized
+parts.`,
+	Version: "none",
+	// Run: func(cmd *cobra.Command, args []string) {
+	// 	cmd.GenBashCompletion(os.Stdout)
+	// },
 }
 
 func Execute() {
 	if err := root.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
