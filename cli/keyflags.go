@@ -4,39 +4,23 @@ import (
 	"bufio"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	root.AddCommand(flagsDebugCmd)
-	addKeyFlags(flagsDebugCmd)
-}
-
 var keyfile string
 var key []byte
 
-var flagsDebugCmd = &cobra.Command{
-	Use:   "flag",
-	Short: "flaggy flags",
-	Long:  "see how flags work",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return checkKeyFlags(cmd)
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("key:  % x\n", key)
-	},
-}
-
+// add necessary key flags to a command
 func addKeyFlags(cmd *cobra.Command) {
 
-	cmd.Flags().StringVarP(&keyfile, "keyfile", "f", "", "key file")
-	cmd.Flags().BytesBase64VarP(&key, "key", "k", nil, "32 byte key")
+	cmd.Flags().StringVarP(&keyfile, "keyfile", "f", "", "file with the key on the first line")
+	cmd.Flags().BytesBase64VarP(&key, "key", "k", nil, "encoded key as string")
 
 }
 
+// check and load keys .. run this in PreRunE
 func checkKeyFlags(cmd *cobra.Command) error {
 
 	kfChg := cmd.Flag("keyfile").Changed

@@ -10,22 +10,33 @@ import (
 
 func init() {
 	root.AddCommand(encryptCmd)
-	encryptCmd.Flags().StringVarP(&outputFile, "output", "o", "", "optional file to write to")
+	encryptCmd.Flags().SortFlags = false
+	addKeyFlags(encryptCmd)
+	addChunkSize(encryptCmd)
+
 }
 
-var outputFile string
-
 var encryptCmd = &cobra.Command{
-	Use:   "enc",
-	Short: "encrypt data with aenker",
+	Use:   "e",
+	Short: "encrypt a file",
 	Long:  "encrypt stdin and place the ciphertext in stdout",
-	Run:   encrypt,
+	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+		err = parseChunkSize(cmd)
+		if err != nil {
+			return
+		}
+		return checkKeyFlags(cmd)
+	},
+	Run: encrypt,
 }
 
 func encrypt(cmd *cobra.Command, args []string) {
 
-	zk := make([]byte, aenker.KeyLength)
-	ae, _ := aenker.NewAenker(zk)
+	ae, _ := aenker.NewAenker(key)
+
+	if cmd.Flag("chunksize").Changed {
+		fmt.Fprintln(os.Stderr, "requested chunksize:", chunksize)
+	}
 
 	lw, err := ae.Encrypt(os.Stdout, os.Stdin)
 	if err != nil {

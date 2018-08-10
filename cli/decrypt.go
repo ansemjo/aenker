@@ -10,19 +10,23 @@ import (
 
 func init() {
 	root.AddCommand(decryptCmd)
+	decryptCmd.Flags().SortFlags = false
+	addKeyFlags(decryptCmd)
 }
 
 var decryptCmd = &cobra.Command{
-	Use:   "dec",
-	Short: "decrypt data with aenker",
+	Use:   "d",
+	Short: "decrypt a file",
 	Long:  "decrypt stdin and place the plaintext in stdout",
-	Run:   decrypt,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return checkKeyFlags(cmd)
+	},
+	Run: decrypt,
 }
 
 func decrypt(cmd *cobra.Command, args []string) {
 
-	zk := make([]byte, aenker.KeyLength)
-	ae, _ := aenker.NewAenker(zk)
+	ae, _ := aenker.NewAenker(key)
 
 	lw, err := ae.Decrypt(os.Stdout, os.Stdin)
 	if err != nil {
