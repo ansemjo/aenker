@@ -21,7 +21,7 @@ vendor :
 	dep ensure
 
 # compile binary
-$(BINARY) : vendor
+$(BINARY) : vendor $(shell find * -type f -name '*.go')
 	go run build.go -o $@
 	command -V upx >/dev/null && upx $@
 
