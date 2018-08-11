@@ -3,6 +3,7 @@ package aenker
 import (
 	"bufio"
 	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
@@ -37,4 +38,14 @@ func randomBytes(size int) (bytes []byte) {
 // print bytes in slice to stderr
 func debugBytes(label string, slice []byte) {
 	fmt.Fprintf(os.Stderr, "%s: % x\n", label, slice)
+}
+
+// simple binary encoding of uint32's
+func itob(i uint32) (b []byte) {
+	b = make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, i)
+	return
+}
+func btoi(b []byte) (i uint32) {
+	return binary.LittleEndian.Uint32(b)
 }
