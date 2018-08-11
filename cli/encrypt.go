@@ -21,11 +21,11 @@ var encryptCmd = &cobra.Command{
 	Short: "encrypt a file",
 	Long:  "encrypt stdin and place the ciphertext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		err = parseChunkSize(cmd)
+		err = parseChunkSize(cmd, args)
 		if err != nil {
 			return
 		}
-		return checkKeyFlags(cmd)
+		return checkKeyFlags(cmd, args)
 	},
 	Run: encrypt,
 }

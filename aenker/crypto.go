@@ -3,8 +3,12 @@ package aenker
 import (
 	"io"
 
+	ce "github.com/ansemjo/aenker/error"
 	padding "github.com/ansemjo/aenker/padding"
 )
+
+// ErrExtraData indicates that there is extra data appended to the ciphertext
+const ErrExtraData = ce.ConstError("aenker: extraneous data after ciphertext")
 
 // Encrypt reads from the given Reader, chunks the plaintext into
 // equal parts, pads and encrypts them with an AEAD and writes ciphertext

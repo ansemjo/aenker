@@ -21,7 +21,7 @@ func addKeyFlags(cmd *cobra.Command) {
 }
 
 // check and load keys .. run this in PreRunE
-func checkKeyFlags(cmd *cobra.Command) error {
+func checkKeyFlags(cmd *cobra.Command, args []string) error {
 
 	kfChg := cmd.Flag("keyfile").Changed
 	kyChg := cmd.Flag("key").Changed

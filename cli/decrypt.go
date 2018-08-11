@@ -20,11 +20,11 @@ var decryptCmd = &cobra.Command{
 	Short: "decrypt a file",
 	Long:  "decrypt stdin and place the plaintext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-		err = parseChunkSize(cmd)
+		err = parseChunkSize(cmd, args)
 		if err != nil {
 			return
 		}
-		return checkKeyFlags(cmd)
+		return checkKeyFlags(cmd, args)
 	},
 	Run: decrypt,
 }

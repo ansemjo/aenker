@@ -1,10 +1,10 @@
 package cli
 
 import (
-	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 
+	"github.com/ansemjo/aenker/aenker"
 	"github.com/spf13/cobra"
 )
 
@@ -18,10 +18,8 @@ var keygen = &cobra.Command{
 	Long:  "Generate a random 32-byte key and output base64-encoded form to stdout",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		r := make([]byte, 32)
-		rand.Read(r)
-
-		fmt.Println(base64.StdEncoding.EncodeToString(r))
+		key := aenker.NewKey()
+		fmt.Println(base64.StdEncoding.EncodeToString(key))
 
 	},
 }

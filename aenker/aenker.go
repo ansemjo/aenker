@@ -15,7 +15,7 @@ type Aenker struct {
 }
 
 // NewAenker return a new Aenker with initialized cipher
-func NewAenker(key []byte, chunksize int) (ae *Aenker, keyerror error) {
-	aead, err := chacha20poly1305.New(key)
+func NewAenker(mek []byte, chunksize int) (ae *Aenker, keyerror error) {
+	aead, err := chacha20poly1305.New(mek)
 	return &Aenker{aead, chunksize}, err
 }

@@ -15,7 +15,7 @@ func addChunkSizeFlag(cmd *cobra.Command) {
 }
 
 // convert datasize string to an int, run in PreRunE
-func parseChunkSize(cmd *cobra.Command) (err error) {
+func parseChunkSize(cmd *cobra.Command, args []string) (err error) {
 
 	var size datasize.ByteSize
 	err = size.UnmarshalText([]byte(chunksizeArg))
