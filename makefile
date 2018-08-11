@@ -10,9 +10,11 @@ BINARY := aenker
 PREFIX := ~/.local
 INSTALLED := $(PREFIX)/bin/$(BINARY)
 
-.PHONY  : install build
+.PHONY  : install build clean
 build   : $(BINARY)
 install : $(INSTALLED)
+clean   :
+	git clean -dfx
 
 # install vendored packages with https://github.com/golang/dep
 vendor :
