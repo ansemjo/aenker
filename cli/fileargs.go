@@ -24,7 +24,7 @@ func addOutFileFlag(cmd *cobra.Command) {
 
 // open input file for reading .. run this in PreRunE
 func checkInFileFlag(cmd *cobra.Command, args []string) error {
-	if cmd.Flag("input").Changed {
+	if cmd.Flag("input").Changed && infileFlag != "-" {
 		f, err := os.Open(infileFlag)
 		if err != nil {
 			return err
@@ -38,7 +38,7 @@ func checkInFileFlag(cmd *cobra.Command, args []string) error {
 
 // open output file for writing .. run this in PreRunE
 func checkOutFileFlag(cmd *cobra.Command, args []string) error {
-	if cmd.Flag("output").Changed {
+	if cmd.Flag("output").Changed && outfileFlag != "-" {
 		f, err := os.Create(outfileFlag)
 		if err != nil {
 			return err
