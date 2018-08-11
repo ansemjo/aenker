@@ -16,7 +16,7 @@ func init() {
 var encryptCmd = &cobra.Command{
 	Use:     "enc",
 	Aliases: []string{"e", "encrypt"},
-	Short:   "encrypt a file",
+	Short:   "Encrypt a file",
 	Long:    "encrypt stdin and place the ciphertext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 

@@ -15,7 +15,7 @@ func init() {
 var decryptCmd = &cobra.Command{
 	Use:     "dec",
 	Aliases: []string{"d", "decrypt"},
-	Short:   "decrypt a file",
+	Short:   "Decrypt a file",
 	Long:    "decrypt stdin and place the plaintext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 

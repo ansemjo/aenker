@@ -24,7 +24,7 @@ func addOutFileFlag(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&outfileFlag, "output", "o", "", "file to write to instead of stdout")
 }
 func addOutDirFlag(cmd *cobra.Command) {
-	cmd.Flags().StringVarP(&outdir, "dir", "d", "", "direcotry to write files in")
+	cmd.Flags().StringVarP(&outdir, "dir", "d", "", "directory to write files in")
 }
 
 // open input file for reading .. run this in PreRunE

@@ -18,19 +18,15 @@ func init() {
 }
 
 var docsCmd = &cobra.Command{
-	Use:     "docs {man|markdown}",
-	Aliases: []string{"documentation", "man", "manual"},
-	Short:   "output manual / documentation",
+	Use:     "manual [man|markdown]",
+	Aliases: []string{"man", "documentation"},
+	Short:   "Output documentation",
 	Long:    "Generate documentation in manpage or markdown format.",
-	Args: func(cmd *cobra.Command, args []string) (err error) {
-		err = cobra.ExactArgs(1)(cmd, args)
-		if err != nil {
-			return
-		}
-		err = cobra.OnlyValidArgs(cmd, args)
-		return
-	},
+	Example: `
+Put manual pages in your local manpath:
+  aenker gen manual -d ~/.local/share/man/`,
 	ValidArgs: []string{"man", "markdown"},
+	Args:      cobra.OnlyValidArgs,
 	PreRunE:   checkOutDirFlag,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
@@ -38,7 +34,7 @@ var docsCmd = &cobra.Command{
 		// contain path seperator characters (e.g. './aenker')
 		rootCmd.Use = docsname
 
-		if args[0] == "markdown" {
+		if len(args) > 0 && args[0] == "markdown" {
 
 			err = doc.GenMarkdownTree(rootCmd, outdir)
 
