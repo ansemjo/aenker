@@ -22,7 +22,8 @@ func (a *Aenker) Encrypt(w io.Writer, r io.Reader) (lengthWritten int64, error e
 		final := eof(buf)                                           // check if this is the last chunk
 		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
 
-			padding.AddPadding(chunk[:nr], final)            // add padding to plaintext
+			chunk = chunk[:nr]                               // truncate to read data
+			padding.AddPadding(&chunk, final)                // add padding to plaintext
 			ct := a.aead.Seal(nil, nonce.Next(), chunk, nil) // encrypt padded data, increment nonce
 			nw, wErr := w.Write(ct)                          // write ciphertext to writer
 			lengthWritten += int64(nw)                       // update output length
@@ -61,10 +62,10 @@ func (a *Aenker) Decrypt(w io.Writer, r io.Reader) (lengthWritten int64, error e
 				return
 			}
 
-			dlen, final := padding.RemovePadding(pt) // get data length after padding removal
-			nw, wErr := w.Write(pt[:dlen])           // write plaintext slice to writer
-			lengthWritten += int64(nw)               // update output length
-			if wErr != nil {                         // an error occurred during write
+			final := padding.RemovePadding(&pt) // get data length after padding removal
+			nw, wErr := w.Write(pt)             // write plaintext slice to writer
+			lengthWritten += int64(nw)          // update output length
+			if wErr != nil {                    // an error occurred during write
 				error = wErr
 				return
 			}

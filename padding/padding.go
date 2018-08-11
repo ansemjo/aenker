@@ -20,12 +20,12 @@ package padding
 //
 // See https://rwc.iacr.org/2018/Slides/Hansen.pdf, page 10.
 // TODO: should probably return error instead of panicking
-func AddPadding(slice []byte, final bool) {
+func AddPadding(slice *[]byte, final bool) {
 
 	//! we'll assume that the capacity of the passed slice is the
 	//! desired chunksize and reuse that memory
-	capacity := cap(slice)
-	length := len(slice)
+	capacity := cap(*slice)
+	length := len(*slice)
 	free := capacity - length
 
 	if !final { // if we are not a final slice ...
@@ -34,7 +34,7 @@ func AddPadding(slice []byte, final bool) {
 			panic("must have exactly one byte free")
 		}
 
-		slice = append(slice, byte(running)) // append running chunk marker
+		*slice = append(*slice, byte(running)) // append running chunk marker
 
 	} else {
 
@@ -42,8 +42,8 @@ func AddPadding(slice []byte, final bool) {
 			panic("must have at least one byte free")
 		}
 
-		var pad byte                 // decide which byte to use for padding
-		if slice[length-1] == 0x00 { // if the last data byte is 0x00 ...
+		var pad byte                    // decide which byte to use for padding
+		if (*slice)[length-1] == 0x00 { // if the last data byte is 0x00 ...
 			pad = 0x01
 		} else {
 			pad = 0x00
@@ -51,14 +51,14 @@ func AddPadding(slice []byte, final bool) {
 
 		needed := free   // how many padding bytes are needed (incl. marker)
 		for needed > 1 { // fill all but the last byte with padding ...
-			slice = append(slice, pad)
+			*slice = append(*slice, pad)
 			needed--
 		}
 
 		if free > 1 { // if we had to use at least one padding byte ...
-			slice = append(slice, byte(padded)) // mark this chunk as padded
+			*slice = append(*slice, byte(padded)) // mark this chunk as padded
 		} else {
-			slice = append(slice, byte(unpadded)) // otherwise unpadded
+			*slice = append(*slice, byte(unpadded)) // otherwise unpadded
 		}
 
 	}
@@ -75,33 +75,34 @@ func AddPadding(slice []byte, final bool) {
 // is returned as `final`.
 // See AddPadding comment for further specifications.
 // TODO: should probably return error instead of panicking
-func RemovePadding(chunk []byte) (datalength int, final bool) {
+func RemovePadding(chunk *[]byte) (final bool) {
 
-	length := len(chunk)         // get length of chunk
-	marker := chunk[length-1]    // get last byte, indicating the type
+	length := len(*chunk)        // get length of chunk
+	marker := (*chunk)[length-1] // get last byte, indicating the type
 	if marker >= byte(invalid) { // any byte larger than `invalid` is unexpected
 		panic("unknown padding type")
 	}
 
 	final = marker != byte(running) // was this a final chunk?
-	chunk = chunk[:length-1]        // truncate last byte
+	*chunk = (*chunk)[:length-1]    // truncate last byte
 	length--
 
 	if marker == byte(padded) { // if type indicates padding ...
 
-		pad := chunk[length-1]             // get the byte that was used to pad
+		pad := (*chunk)[length-1]          // get the byte that was used to pad
 		if !(pad == 0x00 || pad == 0x01) { // any padding byte besides 0 or 1 is unexpected
 			panic("unexpected padding byte")
 		}
 
-		var offset int         // offset where data ends
-		for i := range chunk { // iterate over bytes, beginning at the end
-			if chunk[length-(i+1)] != pad { // and find the first non-pad byte
+		var offset int          // offset where data ends
+		for i := range *chunk { // iterate over bytes, beginning at the end
+			if (*chunk)[length-(i+1)] != pad { // and find the first non-pad byte
 				offset = i // save the offset
 				break
 			}
 		}
-		datalength = length - offset // calulate original slice length
+		datalength := length - offset // calulate original slice length
+		*chunk = (*chunk)[:datalength]
 
 	}
 	return
