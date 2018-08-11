@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"os"
-
 	"github.com/ansemjo/aenker/Aenker"
 	"github.com/spf13/cobra"
 )
@@ -10,6 +8,8 @@ import (
 func init() {
 	decryptCmd.Flags().SortFlags = false
 	addKeyFlags(decryptCmd)
+	addInFileFlag(decryptCmd)
+	addOutFileFlag(decryptCmd)
 }
 
 var decryptCmd = &cobra.Command{
@@ -18,17 +18,31 @@ var decryptCmd = &cobra.Command{
 	Long:  "decrypt stdin and place the plaintext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		return checkKeyFlags(cmd, args)
+		err = checkKeyFlags(cmd, args)
+		if err != nil {
+			return
+		}
 
+		err = checkInFileFlag(cmd, args)
+		if err != nil {
+			return
+		}
+
+		err = checkOutFileFlag(cmd, args)
+		if err != nil {
+			return
+		}
+
+		return
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-
-		reader := os.Stdin
-		writer := os.Stdout
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		ae := aenker.NewAenker(&key)
-		_, err := ae.Decrypt(writer, reader)
+		_, err = ae.Decrypt(outfile, infile)
+		infile.Close()
+		outfile.Close()
 		fatal(err)
+		return
 
 	},
 }

@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"os"
-
 	"github.com/ansemjo/aenker/Aenker"
 	"github.com/spf13/cobra"
 )
@@ -10,6 +8,8 @@ import (
 func init() {
 	encryptCmd.Flags().SortFlags = false
 	addKeyFlags(encryptCmd)
+	addInFileFlag(encryptCmd)
+	addOutFileFlag(encryptCmd)
 	addChunkSizeFlag(encryptCmd)
 }
 
@@ -24,17 +24,31 @@ var encryptCmd = &cobra.Command{
 			return
 		}
 
-		return checkKeyFlags(cmd, args)
+		err = checkKeyFlags(cmd, args)
+		if err != nil {
+			return
+		}
 
+		err = checkInFileFlag(cmd, args)
+		if err != nil {
+			return
+		}
+
+		err = checkOutFileFlag(cmd, args)
+		if err != nil {
+			return
+		}
+
+		return
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-
-		reader := os.Stdin
-		writer := os.Stdout
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		ae := aenker.NewAenker(&key)
-		_, err := ae.Encrypt(writer, reader, chunksize)
+		_, err = ae.Encrypt(outfile, infile, chunksize)
+		infile.Close()
+		outfile.Close()
 		fatal(err)
+		return
 
 	},
 }
