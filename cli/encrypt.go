@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/ansemjo/aenker/Aenker"
@@ -12,7 +11,6 @@ func init() {
 	encryptCmd.Flags().SortFlags = false
 	addKeyFlags(encryptCmd)
 	addChunkSizeFlag(encryptCmd)
-
 }
 
 var encryptCmd = &cobra.Command{
@@ -34,11 +32,9 @@ var encryptCmd = &cobra.Command{
 		reader := os.Stdin
 		writer := os.Stdout
 
-		ae := aenker.NewAenker(&key, chunksize)
-		lw, err := ae.Encrypt(writer, reader)
+		ae := aenker.NewAenker(&key)
+		_, err := ae.Encrypt(writer, reader, chunksize)
 		fatal(err)
-
-		fmt.Fprintf(os.Stderr, "wrote %d bytes\n", lw)
 
 	},
 }

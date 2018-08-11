@@ -1,6 +1,7 @@
 package aenker
 
 import (
+	"encoding/binary"
 	"io"
 
 	"golang.org/x/crypto/chacha20poly1305"
@@ -18,8 +19,11 @@ const keySize = chacha20poly1305.KeySize
 // length of added overhead by aead
 const aeadOverhead = 16 // chacha.New().Overhead()
 
+// length of chunksize encoding
+const chunkSizeEnc = 4
+
 // length of a sealed MEK blob
-const blobSize = nonceSize + keySize + aeadOverhead
+const blobSize = nonceSize + keySize + chunkSizeEnc + aeadOverhead
 
 // NewKey returns a new random key for usage with Aenker
 func NewKey() (key []byte) {
@@ -30,8 +34,7 @@ func NewKey() (key []byte) {
 // and seals it with the supplied key encryption key (KEK). It
 // returns the plain MEK and a blob which is needed later
 // for decryption.
-// TODO: add chunksize to blob
-func (ae *Aenker) sealNewMEK(w io.Writer) (err error) {
+func (ae *Aenker) sealNewMEK(w io.Writer) (lengthWritten int, err error) {
 
 	mek := NewKey()                 // generate a random media encryption key
 	ae.mek = &mek                   // save mek in struct
@@ -42,10 +45,14 @@ func (ae *Aenker) sealNewMEK(w io.Writer) (err error) {
 		return
 	}
 
-	ad := []byte(mediaEncryptionAD)              // get associated data
-	sealed := aead.Seal(nil, nonce, *ae.mek, ad) // encrypt the MEK
-	blob := append(nonce, sealed...)             // concatenate nonce and sealed MEK
-	_, err = w.Write(blob)                       // write blob to writer
+	chunksize := make([]byte, 4)                                   // allocate 4 bytes for chunksize
+	binary.LittleEndian.PutUint32(chunksize, uint32(ae.chunksize)) // and encode
+	plain := append(*ae.mek, chunksize...)                         // concatenate MEK || chunksize
+
+	ad := []byte(mediaEncryptionAD)            // get associated data
+	sealed := aead.Seal(nil, nonce, plain, ad) // encrypt the concatenation
+	blob := append(nonce, sealed...)           // concatenate nonce and sealed MEK
+	lengthWritten, err = w.Write(blob)         // write blob to writer
 
 	return
 
@@ -74,12 +81,17 @@ func (ae *Aenker) openMEK(r io.Reader) (err error) {
 		return
 	}
 
-	mek, err := aead.Open(nil, nonce, sealed, ad) // decrypt media encryption key
-	if err != nil {                               // bail if decryption failed
+	plain, err := aead.Open(nil, nonce, sealed, ad) // decrypt media encryption key
+	if err != nil {                                 // bail if decryption failed
 		return
 	}
 
-	ae.mek = &mek // save mek in struct
+	mek := plain[:keySize] // get MEK from plaintext slice
+	ae.mek = &mek          // save MEK in struct
+
+	cs := binary.LittleEndian.Uint32(plain[keySize : keySize+chunkSizeEnc]) // decode chunksize
+	ae.chunksize = int(cs)                                                  // and save in struct
+
 	return
 
 }

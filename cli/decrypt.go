@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/ansemjo/aenker/Aenker"
@@ -11,7 +10,6 @@ import (
 func init() {
 	decryptCmd.Flags().SortFlags = false
 	addKeyFlags(decryptCmd)
-	addChunkSizeFlag(decryptCmd)
 }
 
 var decryptCmd = &cobra.Command{
@@ -19,11 +17,6 @@ var decryptCmd = &cobra.Command{
 	Short: "decrypt a file",
 	Long:  "decrypt stdin and place the plaintext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-
-		err = parseChunkSize(cmd, args)
-		if err != nil {
-			return
-		}
 
 		return checkKeyFlags(cmd, args)
 
@@ -33,11 +26,9 @@ var decryptCmd = &cobra.Command{
 		reader := os.Stdin
 		writer := os.Stdout
 
-		ae := aenker.NewAenker(&key, chunksize)
-		lw, err := ae.Decrypt(writer, reader)
+		ae := aenker.NewAenker(&key)
+		_, err := ae.Decrypt(writer, reader)
 		fatal(err)
-
-		fmt.Fprintf(os.Stderr, "wrote %d bytes\n", lw)
 
 	},
 }

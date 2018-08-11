@@ -54,7 +54,7 @@ func (ae *Aenker) newChunkStreamer(r io.Reader, mode mode) (
 // EncryptChunkStream reads from the given Reader, chunks the plaintext into
 // equal parts, pads and encrypts them with an AEAD and writes ciphertext
 // to the given Writer
-func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten int64, error error) {
+func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten uint64, error error) {
 
 	s, chunk, error := ae.newChunkStreamer(r, encrypt) // initialize streamer structure and allocate memory
 	if error != nil {
@@ -71,7 +71,7 @@ func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten in
 			padding.AddPadding(&chunk, final)                // add padding to plaintext
 			ct := s.aead.Seal(nil, s.ctr.Next(), chunk, nil) // encrypt padded data, increment nonce
 			nw, wErr := w.Write(ct)                          // write ciphertext to writer
-			lengthWritten += int64(nw)                       // update output length
+			lengthWritten += uint64(nw)                      // update output length
 			if wErr != nil {                                 // an error occurred during write
 				error = wErr
 				return
@@ -92,7 +92,7 @@ func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten in
 // DecryptChunkStream read ciphertext from the given reader, chunks the AEAD-encrypted blocks,
 // attempts to decrypt and verify them and finally writes the original plaintext
 // to the given Writer
-func (ae *Aenker) decryptChunkStream(w io.Writer, r io.Reader) (lengthWritten int64, error error) {
+func (ae *Aenker) decryptChunkStream(w io.Writer, r io.Reader) (lengthWritten uint64, error error) {
 
 	s, chunk, error := ae.newChunkStreamer(r, decrypt) // initialize streamer structure and allocate memory
 	if error != nil {
@@ -113,7 +113,7 @@ func (ae *Aenker) decryptChunkStream(w io.Writer, r io.Reader) (lengthWritten in
 
 			final := padding.RemovePadding(&pt) // get data length after padding removal
 			nw, wErr := w.Write(pt)             // write plaintext slice to writer
-			lengthWritten += int64(nw)          // update output length
+			lengthWritten += uint64(nw)         // update output length
 			if wErr != nil {                    // an error occurred during write
 				error = wErr
 				return
