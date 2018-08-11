@@ -8,14 +8,29 @@
   revision = "4eba002a5eaea69cf8d235a388fc6b65ae68d2dd"
 
 [[projects]]
+  name = "github.com/cpuguy83/go-md2man"
+  packages = ["md2man"]
+  revision = "20f5889cbdc3c73dbd2862796665e7c465ade7d1"
+  version = "v1.0.8"
+
+[[projects]]
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
 
 [[projects]]
-  name = "github.com/spf13/cobra"
+  name = "github.com/russross/blackfriday"
   packages = ["."]
+  revision = "55d61fa8aa702f59229e6cff85793c22e580eaf5"
+  version = "v1.5.1"
+
+[[projects]]
+  name = "github.com/spf13/cobra"
+  packages = [
+    ".",
+    "doc"
+  ]
   revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
   version = "v0.0.3"
 
@@ -42,9 +57,15 @@
   packages = ["cpu"]
   revision = "98c5dad5d1a0e8a73845ecc8897d0bd56586511d"
 
+[[projects]]
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
+  version = "v2.2.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "258d0a99576857ee046ec9c5ce2876392471c2704d0032f03dfdd345fd5e19b7"
+  inputs-digest = "f784717dc3f5813c2208717cf1e0723870d78995f6289b8d78c0a76b181cf2ae"
   solver-name = "gps-cdcl"
   solver-version = 1

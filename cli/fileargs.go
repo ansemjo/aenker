@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -12,6 +13,7 @@ var (
 	infile      io.ReadCloser
 	outfileFlag string
 	outfile     io.WriteCloser
+	outdir      string
 )
 
 // add optional input/output file flags
@@ -21,9 +23,12 @@ func addInFileFlag(cmd *cobra.Command) {
 func addOutFileFlag(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&outfileFlag, "output", "o", "", "file to write to instead of stdout")
 }
+func addOutDirFlag(cmd *cobra.Command) {
+	cmd.Flags().StringVarP(&outdir, "dir", "d", "", "direcotry to write files in")
+}
 
 // open input file for reading .. run this in PreRunE
-func checkInFileFlag(cmd *cobra.Command, args []string) error {
+func checkInFileFlag(cmd *cobra.Command, args []string) (err error) {
 	if cmd.Flag("input").Changed && infileFlag != "-" {
 		f, err := os.Open(infileFlag)
 		if err != nil {
@@ -33,11 +38,11 @@ func checkInFileFlag(cmd *cobra.Command, args []string) error {
 	} else {
 		infile = os.Stdin
 	}
-	return nil
+	return
 }
 
 // open output file for writing .. run this in PreRunE
-func checkOutFileFlag(cmd *cobra.Command, args []string) error {
+func checkOutFileFlag(cmd *cobra.Command, args []string) (err error) {
 	if cmd.Flag("output").Changed && outfileFlag != "-" {
 		f, err := os.Create(outfileFlag)
 		if err != nil {
@@ -47,5 +52,19 @@ func checkOutFileFlag(cmd *cobra.Command, args []string) error {
 	} else {
 		outfile = os.Stdout
 	}
-	return nil
+	return
+}
+
+// create output directory if it does not exist
+func checkOutDirFlag(cmd *cobra.Command, args []string) (err error) {
+	if cmd.Flag("dir").Changed {
+		stat, err := os.Stat(outdir)
+		if err != nil {
+			return err
+		}
+		if !stat.IsDir() {
+			return fmt.Errorf("%s: not a directory", outdir)
+		}
+	}
+	return
 }

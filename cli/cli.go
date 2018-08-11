@@ -8,11 +8,24 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: os.Args[0],
+	Use:   os.Args[0],
+	Short: "authenticated encryption on the commandline",
 	Long: `aenker is a tool to encrypt files with an authenticated
 cipher (ChaCha20Poly1305) in a 'streamable' way by chunking
 the input into equally-sized parts.`,
 	Version: "untracked (not built with build.go)",
+	Example: `
+Generate a new random key:
+  aenker kg -o $HOME/.aenkerkey
+
+Encrypt a file:
+  aenker enc -f $HOME/.aenkerkey -i /path/to/secret/documents.tar.gz -o encrypted.tar.gz.ae
+
+Encrypt using pipes and redirection:
+  echo 'Hello, World!' | aenker e -f key > hello.ae
+
+Decrypt and unpack an encrypted tar archive:
+  aenker dec -f key -i encrypted.tar.gz.ae | tar -xzv`,
 }
 
 // Initialize cobra commander, disable sorting and
@@ -24,6 +37,7 @@ func init() {
 	rootCmd.AddCommand(encryptCmd)
 	rootCmd.AddCommand(decryptCmd)
 	rootCmd.AddCommand(keygenCmd)
+	rootCmd.AddCommand(docsCmd)
 }
 
 // SetVersion sets the version string if a more specific
