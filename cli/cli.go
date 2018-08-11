@@ -12,7 +12,7 @@ var rootCmd = &cobra.Command{
 	Long: `aenker is a tool to encrypt files with an authenticated
 cipher (ChaCha20Poly1305) in a 'streamable' way by chunking
 the input into equally-sized parts.`,
-	Version: "development",
+	Version: "untracked (not built with build.go)",
 }
 
 // Initialize cobra commander, disable sorting and
