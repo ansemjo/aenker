@@ -14,7 +14,7 @@ func init() {
 
 var keygen = &cobra.Command{
 	Use:   "kg",
-	Short: "Generate a random 32-byte key",
+	Short: "generate a new key",
 	Long:  "Generate a random 32-byte key and output base64-encoded form to stdout",
 	Run: func(cmd *cobra.Command, args []string) {
 

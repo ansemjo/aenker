@@ -21,28 +21,33 @@ var encryptCmd = &cobra.Command{
 	Short: "encrypt a file",
 	Long:  "encrypt stdin and place the ciphertext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
+
 		err = parseChunkSize(cmd, args)
 		if err != nil {
 			return
 		}
+
 		return checkKeyFlags(cmd, args)
+
 	},
-	Run: encrypt,
-}
+	Run: func(cmd *cobra.Command, args []string) {
 
-func encrypt(cmd *cobra.Command, args []string) {
+		reader := os.Stdin
+		writer := os.Stdout
 
-	ae, _ := aenker.NewAenker(key, chunksize)
+		mek, blob, err := aenker.NewMEK(key)
+		fatal(err)
 
-	if cmd.Flag("chunksize").Changed {
-		fmt.Fprintln(os.Stderr, "requested chunksize:", chunksize)
-	}
+		ae, err := aenker.NewAenker(mek, chunksize)
+		fatal(err)
 
-	lw, err := ae.Encrypt(os.Stdout, os.Stdin)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	fmt.Fprintf(os.Stderr, "wrote %d bytes\n", lw)
+		_, err = os.Stdout.Write(blob)
+		fatal(err)
 
+		lw, err := ae.Encrypt(writer, reader)
+		fatal(err)
+
+		fmt.Fprintf(os.Stderr, "wrote %d bytes\n", lw)
+
+	},
 }

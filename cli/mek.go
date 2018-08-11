@@ -27,10 +27,10 @@ var sealmek = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		mek, blob, err := aenker.NewMEK(key)
-		if err == nil {
-			fmt.Fprintln(os.Stderr, "MEK:", base64.StdEncoding.EncodeToString(mek))
-			os.Stdout.Write(blob)
-		}
+		fatal(err)
+
+		fmt.Fprintln(os.Stderr, "MEK:", base64.StdEncoding.EncodeToString(mek))
+		os.Stdout.Write(blob)
 
 	},
 }
@@ -42,12 +42,19 @@ var openmek = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		blob, err := ioutil.ReadAll(os.Stdin)
-		if err == nil {
-			mek, err := aenker.OpenMEK(key, blob)
-			if err == nil {
-				fmt.Fprintln(os.Stderr, "MEK:", base64.StdEncoding.EncodeToString(mek))
-			}
-		}
+		fatal(err)
+
+		mek, err := aenker.OpenMEK(key, blob)
+		fatal(err)
+
+		fmt.Fprintln(os.Stderr, "MEK:", base64.StdEncoding.EncodeToString(mek))
 
 	},
+}
+
+func fatal(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }

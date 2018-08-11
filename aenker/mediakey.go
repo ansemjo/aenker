@@ -13,6 +13,12 @@ const nonceSize = chacha20poly1305.NonceSizeX
 // length of the required key in bytes
 const keySize = chacha20poly1305.KeySize
 
+// length of added overhead by aead
+const aeadOverhead = 16 // chacha.New().Overhead()
+
+// MekBlobSize is the length of a sealed MEK blob
+const MekBlobSize = nonceSize + keySize + aeadOverhead
+
 // NewKey returns a new random key for usage with Aenker
 func NewKey() (key []byte) {
 	return randomBytes(keySize)
@@ -22,6 +28,7 @@ func NewKey() (key []byte) {
 // and seals it with the supplied key encryption key (KEK). It
 // returns the plain MEK and a blob which is needed later
 // for decryption.
+// TODO: add chunksize to blob
 func NewMEK(kek []byte) (mek, blob []byte, err error) {
 
 	mek = NewKey()                  // generate a random media encryption key
