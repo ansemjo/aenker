@@ -6,6 +6,8 @@ import (
 	"errors"
 	"os"
 
+	"github.com/mitchellh/go-homedir"
+
 	"github.com/spf13/cobra"
 )
 
@@ -15,30 +17,35 @@ var key []byte
 // add necessary key flags to a command
 func addKeyFlags(cmd *cobra.Command) {
 
-	cmd.Flags().StringVarP(&keyfile, "keyfile", "f", "", "file with the key on the first line")
+	cmd.Flags().StringVarP(&keyfile, "keyfile", "f", "~"+string(os.PathSeparator)+".aenker", "file with the key on the first line")
 	cmd.Flags().BytesBase64VarP(&key, "key", "k", nil, "encoded key as string")
 
 }
 
 // check and load keys .. run this in PreRunE
-func checkKeyFlags(cmd *cobra.Command, args []string) error {
+func checkKeyFlags(cmd *cobra.Command, args []string) (err error) {
 
-	kfChg := cmd.Flag("keyfile").Changed
-	kyChg := cmd.Flag("key").Changed
+	fileGiven := cmd.Flag("keyfile").Changed
+	keyGiven := cmd.Flag("key").Changed
 
-	if kfChg && kyChg { // both were given
+	if fileGiven && keyGiven { // both were given
 		return errors.New("only use either one of keyfile or key")
 	}
 
-	if !kfChg && !kyChg { // none was given
-		return errors.New("one of keyfile or key is required")
-	}
-
-	if kyChg && len(key) != 32 { // key was given and it's not 32 bytes
+	if keyGiven && len(key) != 32 { // key was given and it's not 32 bytes
 		return errors.New("key must be 32 bytes")
 	}
 
-	if kfChg { // keyfile was given
+	if !keyGiven { // key was not given, use (default) file
+
+		// expand ~ only if this was the default, otherwise it might
+		// be a literal tilde ..
+		if !fileGiven {
+			keyfile, err = homedir.Expand(keyfile)
+			if err != nil {
+				return
+			}
+		}
 
 		f, err := os.Open(keyfile) // open keyfile for reading
 		if err != nil {

@@ -16,16 +16,16 @@ the input into equally-sized parts.`,
 	Version: "untracked (not built with build.go)",
 	Example: `
 Generate a new random key:
-  aenker kg -o ~/.aenkerkey
+  aenker kg -o ~/.aenker
 
 Encrypt a file:
-  aenker enc -f ~/.aenkerkey -i /path/to/secret/documents.tar.gz -o encrypted.tar.gz.ae
+  aenker enc -i /path/to/secret/documents.tar.gz -o encrypted.tar.gz.ae
 
 Encrypt using pipes and redirection:
-  echo 'Hello, World!' | aenker e -f key > hello.ae
+  echo 'Hello, World!' | aenker e -f ./otherkey > hello.ae
 
 Decrypt and unpack an encrypted tar archive:
-  aenker dec -f key -i encrypted.tar.gz.ae | tar -xzv`,
+  aenker dec -i encrypted.tar.gz.ae | tar -xzv`,
 }
 
 var gendocCmd = &cobra.Command{

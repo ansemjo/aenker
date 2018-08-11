@@ -20,6 +20,12 @@
   version = "v1.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  revision = "58046073cbffe2f25d425fe1331102f55cf719de"
+
+[[projects]]
   name = "github.com/russross/blackfriday"
   packages = ["."]
   revision = "55d61fa8aa702f59229e6cff85793c22e580eaf5"
@@ -66,6 +72,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f784717dc3f5813c2208717cf1e0723870d78995f6289b8d78c0a76b181cf2ae"
+  inputs-digest = "d66aa7064b1e8cd0dc746cd3c6be4873771c2de935db63ccf19c9fc67e57b4b2"
   solver-name = "gps-cdcl"
   solver-version = 1
