@@ -20,12 +20,10 @@ clean :
 	git clean -dfx
 
 # install vendored packages with https://github.com/golang/dep
-vendor :
-	dep ensure
-
 # compile static binary
 build : $(BINARY)
-$(BINARY) : vendor $(shell find * -type f -name '*.go')
+$(BINARY) : $(shell find * -type f -name '*.go')
+	dep ensure
 	go run build.go -o $@
 	command -V upx >/dev/null && upx $@
 
