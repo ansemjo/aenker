@@ -8,11 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCmd.AddCommand(keygen)
-}
-
-var keygen = &cobra.Command{
+var keygenCmd = &cobra.Command{
 	Use:   "kg",
 	Short: "generate a new key",
 	Long:  "Generate a random 32-byte key and output base64-encoded form to stdout",

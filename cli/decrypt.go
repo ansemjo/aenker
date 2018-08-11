@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/ansemjo/aenker/aenker"
@@ -10,7 +9,6 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(decryptCmd)
 	decryptCmd.Flags().SortFlags = false
 	addKeyFlags(decryptCmd)
 	addChunkSizeFlag(decryptCmd)
@@ -35,17 +33,7 @@ var decryptCmd = &cobra.Command{
 		reader := os.Stdin
 		writer := os.Stdout
 
-		// TODO: handle meks transparently in aenker.*crypt
-		blob := make([]byte, aenker.MekBlobSize)
-		_, err := io.ReadFull(reader, blob)
-		fatal(err)
-
-		mek, err := aenker.OpenMEK(key, blob)
-		fatal(err)
-
-		ae, err := aenker.NewAenker(mek, chunksize)
-		fatal(err)
-
+		ae := aenker.NewAenker(&key, chunksize)
 		lw, err := ae.Decrypt(writer, reader)
 		fatal(err)
 

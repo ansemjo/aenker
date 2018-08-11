@@ -1,6 +1,8 @@
 package aenker
 
 import (
+	"io"
+
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -16,8 +18,8 @@ const keySize = chacha20poly1305.KeySize
 // length of added overhead by aead
 const aeadOverhead = 16 // chacha.New().Overhead()
 
-// MekBlobSize is the length of a sealed MEK blob
-const MekBlobSize = nonceSize + keySize + aeadOverhead
+// length of a sealed MEK blob
+const blobSize = nonceSize + keySize + aeadOverhead
 
 // NewKey returns a new random key for usage with Aenker
 func NewKey() (key []byte) {
@@ -29,36 +31,55 @@ func NewKey() (key []byte) {
 // returns the plain MEK and a blob which is needed later
 // for decryption.
 // TODO: add chunksize to blob
-func NewMEK(kek []byte) (mek, blob []byte, err error) {
+func (ae *Aenker) sealNewMEK(w io.Writer) (err error) {
 
-	mek = NewKey()                  // generate a random media encryption key
+	mek := NewKey()                 // generate a random media encryption key
+	ae.mek = &mek                   // save mek in struct
 	nonce := randomBytes(nonceSize) // generate a random nonce
 
-	aead, err := chacha20poly1305.NewX(kek) // init AEAD, use the 'X' variant with larger nonce
-	if err != nil {                         // size so random nonces can safely be used
+	aead, err := ae.cipher.NewX(*ae.kek) // init AEAD, use the 'X' variant with larger nonce
+	if err != nil {                      // size so random nonces can safely be used
 		return
 	}
 
-	ad := []byte(mediaEncryptionAD)          // associated data
-	sealed := aead.Seal(nil, nonce, mek, ad) // encrypt the MEK
-	blob = append(nonce, sealed...)          // concatenate nonce and sealed MEK
+	ad := []byte(mediaEncryptionAD)              // get associated data
+	sealed := aead.Seal(nil, nonce, *ae.mek, ad) // encrypt the MEK
+	blob := append(nonce, sealed...)             // concatenate nonce and sealed MEK
+	_, err = w.Write(blob)                       // write blob to writer
+
 	return
 
 }
 
 // OpenMEK decrypts a previously sealed MEK blob and returns
 // the plain MEK within.
-func OpenMEK(kek, blob []byte) (mek []byte, err error) {
+func (ae *Aenker) openMEK(r io.Reader) (err error) {
 
-	aead, err := chacha20poly1305.NewX(kek) // init AEAD, use the 'X' variant with larger nonce
-	if err != nil {                         // size so random nonces can safely be used
+	aead, err := ae.cipher.NewX(*ae.kek) // init AEAD, use the 'X' variant with larger nonce
+	if err != nil {                      // size so random nonces can safely be used
 		return
 	}
 
-	ad := []byte(mediaEncryptionAD)              // associated data
-	nonce := blob[:nonceSize]                    // nonce is in first part
-	sealed := blob[nonceSize:]                   // the rest is the sealed MEK with auth tag
-	mek, err = aead.Open(nil, nonce, sealed, ad) // decrypt media encryption key
+	ad := []byte(mediaEncryptionAD) // get associated data
+
+	nonce := make([]byte, nonceSize) // allocate slice for nonce
+	_, err = io.ReadFull(r, nonce)   // read nonce from reader
+	if err != nil {
+		return
+	}
+
+	sealed := make([]byte, blobSize-nonceSize) // allocate slice for the sealed MEK with auth tag
+	_, err = io.ReadFull(r, sealed)            // read sealed data from reader
+	if err != nil {
+		return
+	}
+
+	mek, err := aead.Open(nil, nonce, sealed, ad) // decrypt media encryption key
+	if err != nil {                               // bail if decryption failed
+		return
+	}
+
+	ae.mek = &mek // save mek in struct
 	return
 
 }

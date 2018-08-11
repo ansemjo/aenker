@@ -9,7 +9,6 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(encryptCmd)
 	encryptCmd.Flags().SortFlags = false
 	addKeyFlags(encryptCmd)
 	addChunkSizeFlag(encryptCmd)
@@ -35,15 +34,7 @@ var encryptCmd = &cobra.Command{
 		reader := os.Stdin
 		writer := os.Stdout
 
-		mek, blob, err := aenker.NewMEK(key)
-		fatal(err)
-
-		ae, err := aenker.NewAenker(mek, chunksize)
-		fatal(err)
-
-		_, err = os.Stdout.Write(blob)
-		fatal(err)
-
+		ae := aenker.NewAenker(&key, chunksize)
 		lw, err := ae.Encrypt(writer, reader)
 		fatal(err)
 

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"os"
 )
 
 // find out if the reader is exhausted by
@@ -14,21 +15,13 @@ func eof(r *bufio.Reader) bool {
 	return err == io.EOF
 }
 
-// perform some common initialization for encryption and decryption
-func (a *Aenker) initializeMode(r io.Reader, mode mode) (
-	size int, bufferedReader *bufio.Reader, chunk []byte, nonce *nonceCounter) {
-
-	if mode == encrypt {
-		size = a.chunksize
-	} else {
-		size = a.chunksize + a.aead.Overhead()
+// any non-nil error is a fatal failure.
+// print error to stderr and exit
+func fatal(err error) {
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
-	//? TODO: does NewReaderSize make sense? apply size constraints?
-	bufferedReader = bufio.NewReader(r)
-	chunk = make([]byte, size)
-	nonce = newNonceCounter()
-	return
-
 }
 
 // return bytes from system randomness
@@ -39,4 +32,9 @@ func randomBytes(size int) (bytes []byte) {
 		panic(fmt.Sprintf("could not read %d random bytes", size))
 	}
 	return
+}
+
+// print bytes in slice to stderr
+func debugBytes(label string, slice []byte) {
+	fmt.Fprintf(os.Stderr, "%s: % x\n", label, slice)
 }
