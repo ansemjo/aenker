@@ -14,9 +14,10 @@ func init() {
 }
 
 var keygenCmd = &cobra.Command{
-	Use:   "kg",
-	Short: "generate a new key",
-	Long:  "Generate a random 32-byte key and output base64-encoded form to stdout",
+	Use:     "kg",
+	Aliases: []string{"keygen"},
+	Short:   "generate a new key",
+	Long:    "Generate a random 32-byte key and output base64-encoded form to stdout",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		// open output file with restricted (-rw-r----) permissions

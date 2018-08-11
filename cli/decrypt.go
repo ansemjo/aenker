@@ -13,9 +13,10 @@ func init() {
 }
 
 var decryptCmd = &cobra.Command{
-	Use:   "d",
-	Short: "decrypt a file",
-	Long:  "decrypt stdin and place the plaintext in stdout",
+	Use:     "dec",
+	Aliases: []string{"d", "decrypt"},
+	Short:   "decrypt a file",
+	Long:    "decrypt stdin and place the plaintext in stdout",
 	PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
 		err = checkKeyFlags(cmd, args)
