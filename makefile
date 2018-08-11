@@ -23,6 +23,7 @@ vendor :
 # compile binary
 $(BINARY) : vendor
 	go run build.go -o $@
+	command -V upx >/dev/null && upx $@
 
 # install binary
 $(INSTALLED) : $(BINARY)
