@@ -8,33 +8,40 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "aenker",
-	Short: "aenker is an authenticated encryptor",
-	Long: `aenker is a tool that operates an AEAD
-(ChaCha20Poly1305) in a streamable way
-by chunking the input in equally-sized
-parts.`,
-	Version: "none",
+	Use: os.Args[0],
+	Long: `aenker is a tool to encrypt files with an authenticated
+cipher (ChaCha20Poly1305) in a 'streamable' way by chunking
+the input into equally-sized parts.`,
+	Version: "development",
 }
 
+// Initialize cobra commander, disable sorting and
+// add commands. We do that here instead of in individual
+// file init()s because we want to define the sorting manually.
 func init() {
 	cobra.EnableCommandSorting = false
 	rootCmd.Flags().SortFlags = false
-	// add commands here instead of in individual file inits
-	// because we want to define the sorting ourselves
 	rootCmd.AddCommand(encryptCmd)
 	rootCmd.AddCommand(decryptCmd)
 	rootCmd.AddCommand(keygenCmd)
 }
 
+// SetVersion sets the version string if a more specific
+// or updated string is known
+func SetVersion(version string) {
+	rootCmd.Version = version
+}
+
+// Execute is the main function. It starts the cobra commander,
+// parses arguments and flags, and finally executes the desired command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
 }
 
-// any non-nil error is a fatal failure.
-// print error to stderr and exit
+// Treat any non-nil error as a fatal failure,
+// print error to stderr and exit with nonzero status.
 func fatal(err error) {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
