@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ansemjo/aenker/aenker"
+	"github.com/ansemjo/aenker/Aenker"
 	"github.com/spf13/cobra"
 )
 
