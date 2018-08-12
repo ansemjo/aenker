@@ -18,7 +18,7 @@ GOFILES := $(shell find * -type f -name '*.go')
 # compile static binary
 build : $(BINARY)
 $(BINARY) : $(GOFILES)
-	dep ensure
+	vgo mod vendor
 	go run build.go -o $@
 	command -V upx >/dev/null && upx $@
 

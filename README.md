@@ -74,8 +74,10 @@ You can install from `master` with `go` (make sure `$GOPATH/bin/` is in your `$P
     aenker version untracked (not built with build.go)
 
 Or clone the repository and use the included `build.go` program, which compiles a static binary and
-adds information about the built version into the file:
+adds information about the built version into the file (`vgo` is required for module vendoring
+before `go 1.11.0` is released):
 
+    $ go get golang.org/x/vgo
     $ git clone https://github.com/ansemjo/aenker.git
     $ cd aenker/
     $ make build
@@ -88,7 +90,7 @@ Then install in the default user prefix `~/.local/` (make sure `~/.local/bin/` i
 
 Or globally with:
 
-    $ make install PREFIX=/usr/local
+    $ sudo make install PREFIX=/usr/local
 
 ### documentation
 
@@ -102,8 +104,8 @@ use:
 
 [cobra]: https://github.com/spf13/cobra
 
-All the commands have a nice help message powered by [cobra] aswell, so you cann just use `--help`
-at any point.
+All the commands have a nice help message powered by [cobra] aswell, so you can just use `--help` at
+any point.
 
 ### autocompletion
 
