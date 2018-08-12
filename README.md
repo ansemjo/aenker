@@ -41,7 +41,7 @@ over all data. Thus you can also encrypt files of many gigabytes.
 
 Generate a new random key:
 
-    $ aenker kg > ~/.aenker
+    $ aenker kg -o ~/.aenker
 
 Pack some documents and encrypt them:
 
