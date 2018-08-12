@@ -1,1 +1,4 @@
 vendor/
+docs/*
+!docs/*.md
+aenker
