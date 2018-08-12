@@ -6,41 +6,46 @@
 # 'go install' works aswell but misses the
 # above two features
 
-.PHONY  : default install build clean docs uninstall
+.PHONY  : default install build clean manuals uninstall docs
 
 BINARY := aenker
 PREFIX := ~/.local
 INSTALLED := $(PREFIX)/bin/$(BINARY)
 MANUALS := $(PREFIX)/share/man
-
-default : build
-
-# clean untracked files and directories
-clean :
-	git clean -dfx
+GOFILES := $(shell find * -type f -name '*.go')
 
 # install vendored packages with https://github.com/golang/dep
 # compile static binary
 build : $(BINARY)
-$(BINARY) : $(shell find * -type f -name '*.go')
+$(BINARY) : $(GOFILES)
 	dep ensure
 	go run build.go -o $@
 	command -V upx >/dev/null && upx $@
 
 # install binary and docs
-install : $(INSTALLED)
-$(INSTALLED) : $(BINARY) $(MANUALS)/man1/$(BINARY).1
+install : $(INSTALLED) $(MANUALS)/man1/$(BINARY).1
+$(INSTALLED) : $(BINARY)
 	install -m 755 $< $@
 
-# generate documentation
-docs : $(MANUALS)/man1/$(BINARY).1
-$(MANUALS)/man1/$(BINARY).1 : $(BINARY)
+# generate local docs
+docs : docs/$(BINARY).md
+docs/$(BINARY).md : $(BINARY)
 	mkdir -p docs
-	./$< gen manual -d docs
+	./$< gen manual -d docs man
 	./$< gen manual -d docs markdown
+
+# generate manuals
+manuals : $(MANUALS)/man1/$(BINARY).1
+$(MANUALS)/man1/$(BINARY).1 : $(BINARY)
 	./$< gen manual -d $(MANUALS)
 	@echo "# add this to your ~/.bashrc:"
-	@echo ". <(aenker gen completion)"
+	@echo ". <($< gen completion)"
+	@echo "# or add global bash completions:"
+	@echo "$< gen completion > /usr/share/bash-completion/completions/$<"
+
+# clean untracked files and directories
+clean :
+	git clean -dfx
 
 # attempt to remove installed files
 uninstall :
