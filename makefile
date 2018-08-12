@@ -1,3 +1,6 @@
+# Copyright (c) 2018 Anton Semjonov
+# Licensed under the MIT License
+
 # mini makefile to build binary with build.go
 # and install it in ~/.local/bin
 #

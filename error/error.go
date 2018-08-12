@@ -1,3 +1,6 @@
+// Copyright (c) 2018 Anton Semjonov
+// Licensed under the MIT License
+
 package error
 
 // ConstError is a constant-expression error

@@ -112,3 +112,19 @@ any point.
 Completion script generation is also powered by [cobra]. It's available for `bash` and `zsh`.
 
     $ . <(aenker gen completion)
+
+## disclaimer
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+Please be advised that I am not a professional cryptographer and I made no attempts to produce
+constant-time implementations, thus you should probably not use this code for any interactive or
+on-the-wire protocols.
+
+This is merely a hobby of mine which I hope can be useful to you.
