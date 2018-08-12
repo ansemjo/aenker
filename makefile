@@ -9,7 +9,7 @@
 .PHONY  : default install build clean manuals uninstall docs
 
 BINARY := aenker
-PREFIX := ~/.local
+PREFIX := $(shell [ $$(id -u) -eq 0 ] && echo /usr/local || ~/.local)
 INSTALLED := $(PREFIX)/bin/$(BINARY)
 MANUALS := $(PREFIX)/share/man
 GOFILES := $(shell find * -type f -name '*.go')
