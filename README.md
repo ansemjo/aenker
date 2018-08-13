@@ -37,6 +37,8 @@ the output.
 The chunking still alleviates the need to fit the entire file into memory at once or do two passes
 over all data. Thus you can also encrypt files of many gigabytes.
 
+The format is further described in [SPECIFICATION.md](SPECIFICATION.md).
+
 ## example usage
 
 Generate a new random key:
