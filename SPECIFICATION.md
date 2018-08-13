@@ -85,7 +85,7 @@ They are split into three equal parts of length `chunk - 1 = 7`:
     d3 5d
 
 For a "running" chunk, i.e. one that is not at the very end of a sequence, a padding byte `0x00` is
-added. For a chunk that needs padding, `0x01` is appended at the _very end_.
+added. For a chunk that needs padding, `0x02` is appended at the _very end_.
 
 | chunk type        | last padding byte |
 | ----------------- | ----------------- |
@@ -97,14 +97,14 @@ So we get:
 
     67 e6 29 07 2e 2a af 00
     fc 5f aa 1e 97 4d aa 00
-    d3 5d ·· ·· ·· ·· ·· 01
+    d3 5d ·· ·· ·· ·· ·· 02
 
 The rest of the bytes in the last chunk are filled with `0x00` if the last data byte is **NOT**
 `0x00`, otherwise they are filled with `0x01`:
 
     67 e6 29 07 2e 2a af 00
     fc 5f aa 1e 97 4d aa 00
-    d3 5d 00 00 00 00 00 01
+    d3 5d 00 00 00 00 00 02
 
 A different example:
 
@@ -113,7 +113,7 @@ A different example:
 Becomes:
 
     a7 90 c1 1c 41 34 84 00
-    41 2d 0b de ca 00 01 01
+    41 2d 0b de ca 00 01 02
 
 #### A note on `chunk` size
 
