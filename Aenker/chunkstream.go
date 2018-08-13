@@ -76,7 +76,7 @@ func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten ui
 		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
 
 			chunk = chunk[:nr]                                // truncate to read data
-			padding.AddPadding(&chunk, final)                 // add padding to plaintext
+			padding.AddPadding(&chunk, final, ae.chunksize)   // add padding to plaintext
 			ct := s.aead.Seal(nil, s.ctr.Next(), chunk, s.ad) // encrypt padded data, increment nonce
 			nw, wErr := w.Write(ct)                           // write ciphertext to writer
 			lengthWritten += uint64(nw)                       // update output length

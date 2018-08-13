@@ -3,12 +3,19 @@
 
 package padding
 
-//! ATTENTION
-//! The functions herein make absolutely no attempt to
-//! run in constant time. This likely opens up unwanted
-//! timing side-channels when used in an interactive protocol.
-//! I intended this package mainly for 'offline' use and
-//! archival purposes, so I deem the risk acceptable here.
+import (
+	"crypto/subtle"
+)
+
+// chunktypetype signals what type of padding
+// is to be expected and removed during unpad
+type chunktypetype byte
+
+const (
+	running  chunktypetype = 0 // a common chunk which is followed by many like itself ...
+	unpadded chunktypetype = 1 // a final chunk that fits right inside and needs no padding
+	padded   chunktypetype = 2 // a final chunk that requires padding
+)
 
 // AddPadding appends one or more padding bytes at the end of
 // the slice, depending on whether it is a running or a
@@ -23,11 +30,11 @@ package padding
 //
 // See https://rwc.iacr.org/2018/Slides/Hansen.pdf, page 10.
 // TODO: should probably return error instead of panicking
-func AddPadding(slice *[]byte, final bool) {
+//! WARN: not constant time, might open up side-channels
+func AddPadding(slice *[]byte, final bool, capacity int) {
 
 	//! we'll assume that the capacity of the passed slice is the
 	//! desired chunksize and reuse that memory
-	capacity := cap(*slice)
 	length := len(*slice)
 	free := capacity - length
 
@@ -71,43 +78,49 @@ func AddPadding(slice *[]byte, final bool) {
 
 // RemovePadding looks at a chunk to see how much padding must
 // be removed, which was previously added with AddPadding.
-// It returns the length of data as `datalength`, so the caller
-// can truncate its slice accordingly.
 // The last byte indicates the padding to be expected and
 // wether it was a final chunk of a sequence. This information
 // is returned as `final`.
 // See AddPadding comment for further specifications.
 // TODO: should probably return error instead of panicking
+//! WARNING: This is my best-effor attempt of creating a constant-
+//! time function. Tests with oreparaz/dudect do look promising though.
 func RemovePadding(chunk *[]byte) (final bool) {
 
 	length := len(*chunk)        // get length of chunk
 	marker := (*chunk)[length-1] // get last byte, indicating the type
-	if marker >= byte(invalid) { // any byte larger than `invalid` is unexpected
-		panic("unknown padding type")
-	}
-
-	final = marker != byte(running) // was this a final chunk?
-	*chunk = (*chunk)[:length-1]    // truncate last byte
+	*chunk = (*chunk)[:length-1] // truncate last byte
 	length--
 
-	if marker == byte(padded) { // if type indicates padding ...
+	// final if this was not a 'running' marker
+	final = !((subtle.ConstantTimeByteEq(marker, byte(running)) & 1) == 1)
 
-		pad := (*chunk)[length-1]          // get the byte that was used to pad
-		if !(pad == 0x00 || pad == 0x01) { // any padding byte besides 0 or 1 is unexpected
-			panic("unexpected padding byte")
-		}
-
-		var offset int          // offset where data ends
-		for i := range *chunk { // iterate over bytes, beginning at the end
-			if (*chunk)[length-(i+1)] != pad { // and find the first non-pad byte
-				offset = i // save the offset
-				break
-			}
-		}
-		datalength := length - offset // calulate original slice length
-		*chunk = (*chunk)[:datalength]
-
+	// early exit if this is not a final chunk
+	// this is not constant time, be we don't want to waste _too_ much time
+	// by processing _every_ chunk this way ...
+	if !final {
+		return
 	}
+
+	// mask during pad checking, padding ? 1 : 0
+	// when check is set to zero (from the beginning or during the
+	// for loop) that means that no future bytes will increment the
+	// remove counter, i.e. we're done counting padding bytes.
+	check := subtle.ConstantTimeSelect(int(marker&1), 0, 1)
+
+	pad := (*chunk)[length-1] // get the byte that was used to pad
+	remove := 0               // number of bytes to be removed
+
+	for i := range *chunk { // iterate over all bytes, beginning at the end
+		cur := (*chunk)[length-(i+1)]                              // current byte
+		eqok := subtle.ConstantTimeByteEq(cur, pad) & check        // bytes are equal and check is 1
+		remove = subtle.ConstantTimeSelect(eqok, remove+1, remove) // increment remove when eqok is 1
+		check = eqok                                               // set check to the value of eqok
+	}
+
+	data := length - remove  // calulate data length
+	*chunk = (*chunk)[:data] // and truncate
+
 	return
 
 }
