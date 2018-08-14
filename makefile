@@ -16,14 +16,20 @@ PREFIX := $(shell [ $$(id -u) -eq 0 ] && echo /usr/local || echo ~/.local)
 INSTALLED := $(PREFIX)/bin/$(BINARY)
 MANUALS := $(PREFIX)/share/man
 GOFILES := $(shell find * -type f -name '*.go')
+TMPGOPATH := /tmp/aenker-build-tmpgopath
 
 # install vendored packages with https://github.com/golang/dep
 # compile static binary
 build : $(BINARY)
 $(BINARY) : $(GOFILES)
 	vgo mod vendor
-	go run build.go -o $@
-	command -V upx >/dev/null && upx $@
+	go run build.go -o $@ --tempdir $(TMPGOPATH)
+	./$@ --version
+	sha256sum --tag $@
+
+# compress binary with upx
+compress : $(BINARY)
+	upx $<
 
 # install binary and docs
 install : $(INSTALLED) $(MANUALS)/man1/$(BINARY).1

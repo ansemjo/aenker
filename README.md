@@ -73,18 +73,27 @@ You can install from `master` with `go` (make sure `$GOPATH/bin/` is in your `$P
 
     $ go get -u github.com/ansemjo/aenker
     $ aenker --version
-    aenker version untracked (not built with build.go)
+    aenker version 0.3.5 (not built with build.go)
 
 Or clone the repository and use the included `build.go` program, which compiles a static binary and
-adds information about the built version into the file (`vgo` is required for module vendoring
-before `go 1.11.0` is released):
+adds more specific information about the built version into the file (`vgo` is required for module
+vendoring before `go 1.11.0` is released):
 
     $ go get golang.org/x/vgo
     $ git clone https://github.com/ansemjo/aenker.git
     $ cd aenker/
-    $ make build
-    $ ./aenker --version
-    ./aenker version 0.3.2 (0.3.2-4-g102a758-dirty)
+    $ make
+    vgo mod vendor
+    go run build.go -o aenker --tempdir /tmp/aenker-build-tmpgopath
+    ./aenker --version
+    ./aenker version 0.3.5-4-ge1976f0-dirty
+    sha256sum --tag aenker
+    SHA256 (aenker) = 0ddd523be3aec435bb044946e1473c651d694658682fabc0b5c665210301b931
+
+If you have [upx](https://upx.github.io/) installed, you can further compress the binary, which
+results in approximately a third of the file size:
+
+    $ make compress
 
 Then install in the default user prefix `~/.local/` (make sure `~/.local/bin/` is in your `$PATH`):
 
@@ -114,6 +123,10 @@ any point.
 Completion script generation is also powered by [cobra]. It's available for `bash` and `zsh`.
 
     $ . <(aenker gen completion)
+
+or
+
+    $ aenker gen completion | sudo tee /usr/share/bash-completion/completions/aenker
 
 ## disclaimer
 
