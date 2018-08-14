@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.6
+
+### Added specification
+
+I attempted to document the on-disk format in [SPECIFICATION.md](SPECIFICATION.md).
+
+### Reproducible builds
+
+By adding a static `--tempdir ...` argument to the `build.go` invocation, the builds became
+reproducible.
+
 ## 0.3.5
 
 ### `RemovePadding()` was refactored into a constant-time function
