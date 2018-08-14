@@ -46,20 +46,22 @@ import (
 
 // config contains the configuration for the program to build.
 var config = Config{
-	Name:       "aenker",                    // name of the program executable
-	Namespace:  "github.com/ansemjo/aenker", // subdir of GOPATH this repo/checkout needs to be at, e.g. "github.com/foo/bar"
-	Main:       "github.com/ansemjo/aenker", // package path for the main package to build
-	Tests:      []string{},                  // tests to run
-	MinVersion: GoVersion{1, 8, 0},          // minimum Go version needed for this program
+	Name:             "aenker",                    // name of the program executable and directory
+	Namespace:        "github.com/ansemjo/aenker", // subdir of GOPATH, e.g. "github.com/foo/bar"
+	Main:             "github.com/ansemjo/aenker", // package name for the main package
+	DefaultBuildTags: []string{},                  // specify build tags which are always used
+	Tests:            []string{},
+	MinVersion:       GoVersion{Major: 1, Minor: 8, Patch: 0}, // minimum Go version supported
 }
 
 // Config configures the build.
 type Config struct {
-	Name       string
-	Namespace  string
-	Main       string
-	Tests      []string
-	MinVersion GoVersion
+	Name             string
+	Namespace        string
+	Main             string
+	DefaultBuildTags []string
+	Tests            []string
+	MinVersion       GoVersion
 }
 
 var (
@@ -238,11 +240,20 @@ func verbosePrintf(message string, args ...interface{}) {
 	fmt.Printf("build: "+message, args...)
 }
 
-// cleanEnv returns a clean environment with GOPATH and GOBIN removed (if
-// present).
+// cleanEnv returns a clean environment with GOPATH, GOBIN and GO111MODULE
+// removed (if present).
 func cleanEnv() (env []string) {
+	removeKeys := map[string]struct{}{
+		"GOPATH":      struct{}{},
+		"GOBIN":       struct{}{},
+		"GO111MODULE": struct{}{},
+	}
+
 	for _, v := range os.Environ() {
-		if strings.HasPrefix(v, "GOPATH=") || strings.HasPrefix(v, "GOBIN=") {
+		data := strings.SplitN(v, "=", 2)
+		name := data[0]
+
+		if _, ok := removeKeys[name]; ok {
 			continue
 		}
 
@@ -449,7 +460,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	buildTags := []string{}
+	buildTags := config.DefaultBuildTags
 
 	skipNext := false
 	params := os.Args[1:]
@@ -478,7 +489,7 @@ func main() {
 				die("-t given but no tag specified")
 			}
 			skipNext = true
-			buildTags = strings.Split(params[i+1], " ")
+			buildTags = append(buildTags, strings.Split(params[i+1], " ")...)
 		case "-o", "--output":
 			skipNext = true
 			outputFilename = params[i+1]
@@ -551,7 +562,7 @@ func main() {
 		if !keepGopath {
 			verbosePrintf("remove %v\n", gopath)
 			if err = os.RemoveAll(gopath); err != nil {
-				die("remove GOPATH at %s failed: %v\n", err)
+				die("remove GOPATH at %s failed: %v\n", gopath, err)
 			}
 		} else {
 			verbosePrintf("leaving temporary GOPATH at %v\n", gopath)
@@ -596,7 +607,7 @@ func main() {
 	if runTests {
 		verbosePrintf("running tests\n")
 
-		err = test(cwd, gopath, config.Tests...)
+		err = test(filepath.Join(gopath, "src"), gopath, config.Tests...)
 		if err != nil {
 			die("running tests failed: %v\n", err)
 		}
