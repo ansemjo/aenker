@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Long: `aenker is a tool to encrypt files with an authenticated
 cipher (ChaCha20Poly1305) in a 'streamable' way by chunking
 the input into equally-sized parts.`,
-	Version: "untracked (not built with build.go)",
+	Version: "0.3.5 (not built with build.go)",
 	Example: `
 Generate a new random key:
   aenker kg -o ~/.aenker
