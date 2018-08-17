@@ -31,6 +31,17 @@ $(BINARY) : $(GOFILES)
 compress : $(BINARY)
 	upx $<
 
+# prepare for ansemjo/makerelease
+prepare-release:
+	go mod vendor
+
+release:
+	CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) \
+		go build -o $(RELEASEDIR)/$(BINARY)-$(OS)-$(ARCH)
+
+finish-release:
+	cd $(RELEASEDIR) && sha256sum $(BINARY)-*-* | tee sha256sums
+
 # install binary and docs
 install : $(INSTALLED) $(MANUALS)/man1/$(BINARY).1
 $(INSTALLED) : $(BINARY)
