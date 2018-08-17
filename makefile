@@ -32,14 +32,18 @@ compress : $(BINARY)
 	upx $<
 
 # prepare for ansemjo/makerelease
-prepare-release:
+mkrelease-prepare:
 	go mod vendor
 
-release:
+mkrelease-targets:
+	@bash -c 'echo {linux,darwin}/{386,amd64} linux/arm{,64} {free,open}bsd/{386,amd64,arm}'
+
+mkrelease:
 	CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) \
 		go build -o $(RELEASEDIR)/$(BINARY)-$(OS)-$(ARCH)
 
-finish-release:
+mkrelease-finish:
+	upx $(RELEASEDIR)/* || true
 	cd $(RELEASEDIR) && sha256sum $(BINARY)-*-* | tee sha256sums
 
 # install binary and docs
