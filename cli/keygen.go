@@ -5,7 +5,6 @@ package cli
 
 import (
 	"encoding/base64"
-	"syscall"
 
 	"github.com/ansemjo/aenker/Aenker"
 	"github.com/spf13/cobra"
@@ -23,8 +22,8 @@ var keygenCmd = &cobra.Command{
 	Long:    "Generate a random 32-byte key and output base64-encoded form to stdout",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		// open output file with restricted (-rw-r----) permissions
-		syscall.Umask(0027)
+		// open output file
+		// TODO: use the file flag functions from curvekey to enable setting permissions
 		err = checkOutFileFlag(cmd, args)
 		if err != nil {
 			return
