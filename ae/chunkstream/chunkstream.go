@@ -42,7 +42,6 @@ func newChunkStream(opts Options, encrypt bool) (stream *chunkStream, chunk []by
 	s := &chunkStream{
 		reader: bufio.NewReader(opts.Reader), // buffered reader
 		writer: opts.Writer,                  // copy writer
-		ctr:    newNonceCounter(),            // nonce counter
 		info:   opts.Info,                    // additional data for aead
 	}
 
@@ -50,6 +49,8 @@ func newChunkStream(opts Options, encrypt bool) (stream *chunkStream, chunk []by
 	if err != nil {
 		return
 	}
+
+	s.ctr = newNonceCounter(s.aead.NonceSize()) // nonce counter
 
 	if encrypt { // depending on mode, calculate chunk size
 		s.size = opts.Chunksize

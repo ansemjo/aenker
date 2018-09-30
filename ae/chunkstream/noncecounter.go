@@ -5,22 +5,26 @@ package chunkstream
 
 import "encoding/binary"
 
-// Nonce is a counter which is monotonically incremented
-// and outputs a 12-byte slice on .Next() for AEAD usage
+// nonceCounter is a 64 bit counter which is monotonically incremented
+// and outputs a slice on .Next() for AEAD usage
 type nonceCounter struct {
-	ctr uint64
+	ctr   uint64
+	nonce []byte
+	size  int
 }
 
 // NewNonce returns a new Nonce starting at 0
-func newNonceCounter() *nonceCounter {
-	return &nonceCounter{}
+func newNonceCounter(size int) *nonceCounter {
+	return &nonceCounter{
+		nonce: make([]byte, 32),
+		size:  size,
+	}
 }
 
 // Next outputs the current counter value as a 12-byte
 // slice and increments the internal counter
 func (nc *nonceCounter) Next() (nonce []byte) {
-	nonce = make([]byte, 12)
-	binary.LittleEndian.PutUint64(nonce, nc.ctr)
+	binary.LittleEndian.PutUint64(nc.nonce, nc.ctr)
 	nc.ctr++
-	return
+	return nc.nonce[:nc.size]
 }
