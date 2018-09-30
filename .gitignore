@@ -4,3 +4,4 @@ docs/*
 aenker
 release/
 .vscode/
+debug/
