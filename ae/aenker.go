@@ -10,6 +10,13 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
+const (
+	magic            = "aenker"
+	kdfInfoSymmetric = magic + " symmetric"
+	kdfInfoPassword  = magic + " password"
+	kdfInfoElliptic  = magic + " elliptic"
+)
+
 type aeadCipher struct {
 	New  func([]byte) (cipher.AEAD, error)
 	NewX func([]byte) (cipher.AEAD, error)

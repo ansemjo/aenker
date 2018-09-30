@@ -52,3 +52,34 @@ func itob(i uint32) (b []byte) {
 func btoi(b []byte) (i uint32) {
 	return binary.LittleEndian.Uint32(b)
 }
+
+// binary encoding of uint16
+func u16tob(u uint16) (b []byte) {
+	b = make([]byte, 2)
+	binary.LittleEndian.PutUint16(b, u)
+	return
+}
+func btou16(b []byte) (u uint16) {
+	return binary.LittleEndian.Uint16(b)
+}
+
+// read specified number of bytes from reader
+func readBytes(r io.Reader, n int) (b []byte, err error) {
+	b = make([]byte, n)
+	_, err = io.ReadFull(r, b)
+	return
+}
+
+// read a single byte from reader
+func readByte(r io.Reader) (b byte, err error) {
+	by, err := readBytes(r, 1)
+	if err != nil {
+		return
+	}
+	return by[0], nil
+}
+
+// concatenate string and error as new error
+func errfmt(str, err string) error {
+	return fmt.Errorf("%s: %s", str, err)
+}

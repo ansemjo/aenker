@@ -1,7 +1,7 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
-package ae
+package chunkstream
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/ansemjo/aenker/padding"
+	"github.com/ansemjo/aenker/ae/padding"
 )
 
 // ErrExtraData indicates that there is extra data appended to the ciphertext
