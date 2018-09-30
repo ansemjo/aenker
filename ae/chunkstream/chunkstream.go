@@ -12,6 +12,8 @@ import (
 	"github.com/ansemjo/aenker/ae/padding"
 )
 
+// TODO: create WriteCloser and Reader interfaces
+
 // Options is a configuration object required to instantiate a chunkStreamer
 type Options struct {
 	AEAD      func([]byte) (cipher.AEAD, error)
@@ -23,6 +25,7 @@ type Options struct {
 }
 
 // chunkStream is the internal state of a chunkStreamer
+// TODO: do we need two seperate option structs?
 type chunkStream struct {
 	aead   cipher.AEAD
 	info   []byte
