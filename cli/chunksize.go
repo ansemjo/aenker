@@ -4,7 +4,7 @@
 package cli
 
 import (
-	ce "github.com/ansemjo/aenker/error"
+	"errors"
 	"github.com/c2h5oh/datasize"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +27,7 @@ func parseChunkSize(cmd *cobra.Command, args []string) (err error) {
 	}
 
 	if size > datasize.GB {
-		return ce.ConstError("chunksize too large")
+		return errors.New("chunksize too large")
 	}
 	chunksize = int(size.Bytes())
 

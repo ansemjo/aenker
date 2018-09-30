@@ -6,7 +6,7 @@ package cli
 import (
 	"encoding/base64"
 
-	"github.com/ansemjo/aenker/Aenker"
+	"github.com/ansemjo/aenker/ae"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ var keygenCmd = &cobra.Command{
 
 		// generate a new key and write encoded form to file
 		enc := base64.NewEncoder(base64.StdEncoding, outfile)
-		_, err = enc.Write(aenker.NewKey())
+		_, err = enc.Write(ae.NewKey())
 		if err != nil {
 			return
 		}

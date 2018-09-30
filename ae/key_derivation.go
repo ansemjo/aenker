@@ -1,4 +1,7 @@
-package aenker
+// Copyright (c) 2018 Anton Semjonov
+// Licensed under the MIT License
+
+package ae
 
 import (
 	"golang.org/x/crypto/blake2b"

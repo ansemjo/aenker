@@ -4,7 +4,7 @@
 package cli
 
 import (
-	"github.com/ansemjo/aenker/Aenker"
+	"github.com/ansemjo/aenker/ae"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ var decryptCmd = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-		ae := aenker.NewAenker(&key)
+		ae := ae.NewAenker(&key)
 		_, err = ae.Decrypt(outfile, infile)
 		infile.Close()
 		outfile.Close()

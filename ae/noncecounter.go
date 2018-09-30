@@ -1,7 +1,7 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
-package aenker
+package ae
 
 import "encoding/binary"
 

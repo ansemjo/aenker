@@ -1,19 +1,19 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
-package aenker
+package ae
 
 import (
 	"bufio"
 	"crypto/cipher"
+	"errors"
 	"io"
 
-	ce "github.com/ansemjo/aenker/error"
-	padding "github.com/ansemjo/aenker/padding"
+	"github.com/ansemjo/aenker/padding"
 )
 
 // ErrExtraData indicates that there is extra data appended to the ciphertext
-const ErrExtraData = ce.ConstError("aenker: extraneous data after ciphertext")
+var ErrExtraData = errors.New("aenker: extraneous data after ciphertext")
 
 // associated data for the chunk encryption
 const chunkEncryptionAD = "Aenker Chunk"
