@@ -59,7 +59,6 @@ func (ae *Aenker) Encrypt(w io.Writer, r io.Reader, chunksize int) (lengthWritte
 	}
 
 	chunks, err := chunkstream.Encrypt(chunkstream.Options{
-		AEAD:      ae.cipher.New,
 		Key:       *ae.mek,
 		Info:      nil,
 		Reader:    r,
@@ -85,7 +84,6 @@ func (ae *Aenker) Decrypt(w io.Writer, r io.Reader) (lengthWritten uint64, err e
 	}
 
 	return chunkstream.Decrypt(chunkstream.Options{
-		AEAD:      ae.cipher.New,
 		Key:       *ae.mek,
 		Info:      nil,
 		Reader:    r,

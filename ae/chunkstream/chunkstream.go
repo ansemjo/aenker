@@ -16,7 +16,6 @@ import (
 
 // Options is a configuration object required to instantiate a chunkStreamer
 type Options struct {
-	AEAD      func([]byte) (cipher.AEAD, error)
 	Key       []byte
 	Info      []byte
 	Reader    io.Reader
@@ -27,7 +26,7 @@ type Options struct {
 // chunkStream is the internal state of a chunkStreamer
 // TODO: do we need two seperate option structs?
 type chunkStream struct {
-	aead   cipher.AEAD
+	cipher cipher.AEAD
 	info   []byte
 	size   int
 	reader *bufio.Reader
@@ -45,17 +44,17 @@ func newChunkStream(opts Options, encrypt bool) (stream *chunkStream, chunk []by
 		info:   opts.Info,                    // additional data for aead
 	}
 
-	s.aead, err = opts.AEAD(opts.Key) // init aead with media encryption key
+	s.cipher, err = AEAD(opts.Key) // init aead with media encryption key
 	if err != nil {
 		return
 	}
 
-	s.ctr = newNonceCounter(s.aead.NonceSize()) // nonce counter
+	s.ctr = newNonceCounter(s.cipher.NonceSize()) // nonce counter
 
 	if encrypt { // depending on mode, calculate chunk size
 		s.size = opts.Chunksize
 	} else {
-		s.size = opts.Chunksize + s.aead.Overhead()
+		s.size = opts.Chunksize + s.cipher.Overhead()
 	}
 
 	stream = s                   // assign created streamer pointer
@@ -81,12 +80,12 @@ func Encrypt(opts Options) (lengthWritten uint64, err error) {
 		final := eof(s.reader)                                      // check if this is the last chunk
 		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
 
-			chunk = chunk[:nr]                                  // truncate to read data
-			padding.AddPadding(&chunk, final, s.size)           // add padding to plaintext
-			ct := s.aead.Seal(nil, s.ctr.Next(), chunk, s.info) // encrypt padded data, increment nonce
-			nw, wErr := s.writer.Write(ct)                      // write ciphertext to writer
-			lengthWritten += uint64(nw)                         // update output length
-			if wErr != nil {                                    // an error occurred during write
+			chunk = chunk[:nr]                                    // truncate to read data
+			padding.AddPadding(&chunk, final, s.size)             // add padding to plaintext
+			ct := s.cipher.Seal(nil, s.ctr.Next(), chunk, s.info) // encrypt padded data, increment nonce
+			nw, wErr := s.writer.Write(ct)                        // write ciphertext to writer
+			lengthWritten += uint64(nw)                           // update output length
+			if wErr != nil {                                      // an error occurred during write
 				err = wErr
 				return
 			}
@@ -119,8 +118,8 @@ func Decrypt(opts Options) (lengthWritten uint64, err error) {
 		more := !eof(s.reader)                                      // check if there is more data
 		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
 
-			pt, cErr := s.aead.Open(nil, s.ctr.Next(), chunk[:nr], s.info) // decrypt and verify data, increment nonce
-			if cErr != nil {                                               // an error occurred during decryption
+			pt, cErr := s.cipher.Open(nil, s.ctr.Next(), chunk[:nr], s.info) // decrypt and verify data, increment nonce
+			if cErr != nil {                                                 // an error occurred during decryption
 				err = cErr
 				return
 			}
