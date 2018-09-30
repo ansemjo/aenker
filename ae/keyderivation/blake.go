@@ -23,7 +23,7 @@ func unkeyed(newkeyed func([]byte) (hash.Hash, error)) func() hash.Hash {
 
 }
 
-// unkeyed Blake2b
+// Unkeyed Blake2b Hashes
 var (
 	Blake2b256 = unkeyed(blake2b.New256)
 	Blake2b384 = unkeyed(blake2b.New384)
