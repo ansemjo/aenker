@@ -7,7 +7,7 @@ import (
 	"github.com/ansemjo/aenker/ae"
 )
 
-func main() {
+func readhead() {
 
 	a := ae.Aenker2{}
 

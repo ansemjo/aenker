@@ -2,3 +2,5 @@ vendor/
 docs/*
 !docs/*.md
 aenker
+release/
+.vscode/

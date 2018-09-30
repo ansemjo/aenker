@@ -7,7 +7,7 @@ import (
 	"github.com/ansemjo/aenker/ae/keyderivation"
 )
 
-func main() {
+func keyderive() {
 
 	secret := []byte("pass")
 	salt := []byte("salt")
