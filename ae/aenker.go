@@ -7,6 +7,7 @@ import (
 	"crypto/cipher"
 	"io"
 
+	"github.com/ansemjo/aenker/ae/chunkstream"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
@@ -57,7 +58,14 @@ func (ae *Aenker) Encrypt(w io.Writer, r io.Reader, chunksize int) (lengthWritte
 		return
 	}
 
-	chunks, err := ae.encryptChunkStream(w, r)
+	chunks, err := chunkstream.Encrypt(chunkstream.Options{
+		AEAD:      ae.cipher.New,
+		Key:       *ae.mek,
+		Info:      nil,
+		Reader:    r,
+		Writer:    w,
+		Chunksize: chunksize,
+	})
 	lengthWritten = uint64(mek) + chunks
 	return
 
@@ -76,6 +84,13 @@ func (ae *Aenker) Decrypt(w io.Writer, r io.Reader) (lengthWritten uint64, err e
 		return
 	}
 
-	return ae.decryptChunkStream(w, r)
+	return chunkstream.Decrypt(chunkstream.Options{
+		AEAD:      ae.cipher.New,
+		Key:       *ae.mek,
+		Info:      nil,
+		Reader:    r,
+		Writer:    w,
+		Chunksize: ae.chunksize,
+	})
 
 }

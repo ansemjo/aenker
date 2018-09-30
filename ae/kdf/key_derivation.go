@@ -1,13 +1,14 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
-package ae
+package kdf
 
 import (
-	"golang.org/x/crypto/blake2b"
-	"golang.org/x/crypto/hkdf"
 	"hash"
 	"io"
+
+	"golang.org/x/crypto/blake2b"
+	"golang.org/x/crypto/hkdf"
 )
 
 func KDF(userkey, salt []byte, info string) (key []byte) {

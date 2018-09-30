@@ -12,60 +12,62 @@ import (
 	"github.com/ansemjo/aenker/ae/padding"
 )
 
-// ErrExtraData indicates that there is extra data appended to the ciphertext
-var ErrExtraData = errors.New("aenker: extraneous data after ciphertext")
+// Options is a configuration object required to instantiate a chunkStreamer
+type Options struct {
+	AEAD      func([]byte) (cipher.AEAD, error)
+	Key       []byte
+	Info      []byte
+	Reader    io.Reader
+	Writer    io.Writer
+	Chunksize int
+}
 
-// associated data for the chunk encryption
-const chunkEncryptionAD = "Aenker Chunk"
-
-// wether we are encrypting or decrypting
-type mode int
-
-const encrypt mode = 0
-const decrypt mode = 1
-
-type chunkStreamer struct {
-	size   int
+// chunkStream is the internal state of a chunkStreamer
+type chunkStream struct {
 	aead   cipher.AEAD
+	info   []byte
+	size   int
 	reader *bufio.Reader
+	writer io.Writer
 	ctr    *nonceCounter
-	ad     []byte
 }
 
 // perform some common initialization for encryption and decryption
-func (ae *Aenker) newChunkStreamer(r io.Reader, mode mode) (
-	streamer *chunkStreamer, chunkbuf []byte, err error) {
+// TODO: properly error out if any required field is nil
+func newChunkStream(opts Options, encrypt bool) (stream *chunkStream, chunk []byte, err error) {
 
-	s := &chunkStreamer{}         // new chunk streamer struct
-	s.reader = bufio.NewReader(r) // add buffered reader
-	s.ctr = newNonceCounter()     // add nonce counter
-	s.ad = append([]byte(chunkEncryptionAD), itob(uint32(ae.chunksize))...)
+	s := &chunkStream{
+		reader: bufio.NewReader(opts.Reader), // buffered reader
+		writer: opts.Writer,                  // copy writer
+		ctr:    newNonceCounter(),            // nonce counter
+		info:   opts.Info,                    // additional data for aead
+	}
 
-	s.aead, err = ae.cipher.New(*ae.mek) // init AEAD with media encryption key
+	s.aead, err = opts.AEAD(opts.Key) // init aead with media encryption key
 	if err != nil {
 		return
 	}
 
-	if mode == encrypt { // depending on mode, calculate chunk size
-		s.size = ae.chunksize
+	if encrypt { // depending on mode, calculate chunk size
+		s.size = opts.Chunksize
 	} else {
-		s.size = ae.chunksize + s.aead.Overhead()
+		s.size = opts.Chunksize + s.aead.Overhead()
 	}
 
-	streamer = s                    // assign created streamer pointer
-	chunkbuf = make([]byte, s.size) // allocate slice with correct capacity
+	stream = s                   // assign created streamer pointer
+	chunk = make([]byte, s.size) // allocate slice with correct capacity
 
 	return
 
 }
 
-// EncryptChunkStream reads from the given Reader, chunks the plaintext into
+// Encrypt reads from the given Reader, chunks the plaintext into
 // equal parts, pads and encrypts them with an AEAD and writes ciphertext
 // to the given Writer
-func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten uint64, error error) {
+func Encrypt(opts Options) (lengthWritten uint64, err error) {
 
-	s, chunk, error := ae.newChunkStreamer(r, encrypt) // initialize streamer structure and allocate memory
-	if error != nil {
+	s, chunk, err := newChunkStream(opts, true)
+	if err != nil {
 		return
 	}
 
@@ -75,18 +77,18 @@ func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten ui
 		final := eof(s.reader)                                      // check if this is the last chunk
 		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
 
-			chunk = chunk[:nr]                                // truncate to read data
-			padding.AddPadding(&chunk, final, ae.chunksize)   // add padding to plaintext
-			ct := s.aead.Seal(nil, s.ctr.Next(), chunk, s.ad) // encrypt padded data, increment nonce
-			nw, wErr := w.Write(ct)                           // write ciphertext to writer
-			lengthWritten += uint64(nw)                       // update output length
-			if wErr != nil {                                  // an error occurred during write
-				error = wErr
+			chunk = chunk[:nr]                                  // truncate to read data
+			padding.AddPadding(&chunk, final, s.size)           // add padding to plaintext
+			ct := s.aead.Seal(nil, s.ctr.Next(), chunk, s.info) // encrypt padded data, increment nonce
+			nw, wErr := s.writer.Write(ct)                      // write ciphertext to writer
+			lengthWritten += uint64(nw)                         // update output length
+			if wErr != nil {                                    // an error occurred during write
+				err = wErr
 				return
 			}
 
 		} else { // possibly fatal error occurred during read
-			error = rErr
+			err = rErr
 			return
 		}
 		if final { // this was the last chunk, we're done
@@ -97,13 +99,13 @@ func (ae *Aenker) encryptChunkStream(w io.Writer, r io.Reader) (lengthWritten ui
 
 }
 
-// DecryptChunkStream read ciphertext from the given reader, chunks the AEAD-encrypted blocks,
+// Decrypt read ciphertext from the given reader, chunks the AEAD-encrypted blocks,
 // attempts to decrypt and verify them and finally writes the original plaintext
 // to the given Writer
-func (ae *Aenker) decryptChunkStream(w io.Writer, r io.Reader) (lengthWritten uint64, error error) {
+func Decrypt(opts Options) (lengthWritten uint64, err error) {
 
-	s, chunk, error := ae.newChunkStreamer(r, decrypt) // initialize streamer structure and allocate memory
-	if error != nil {
+	s, chunk, err := newChunkStream(opts, false)
+	if err != nil {
 		return
 	}
 
@@ -113,27 +115,27 @@ func (ae *Aenker) decryptChunkStream(w io.Writer, r io.Reader) (lengthWritten ui
 		more := !eof(s.reader)                                      // check if there is more data
 		if nr > 0 && (rErr == nil || rErr == io.ErrUnexpectedEOF) { // if there is data and no unusual error
 
-			pt, cErr := s.aead.Open(nil, s.ctr.Next(), chunk[:nr], s.ad) // decrypt and verify data, increment nonce
-			if cErr != nil {                                             // an error occurred during decryption
-				error = cErr
+			pt, cErr := s.aead.Open(nil, s.ctr.Next(), chunk[:nr], s.info) // decrypt and verify data, increment nonce
+			if cErr != nil {                                               // an error occurred during decryption
+				err = cErr
 				return
 			}
 
 			final := padding.RemovePadding(&pt) // get data length after padding removal
-			nw, wErr := w.Write(pt)             // write plaintext slice to writer
+			nw, wErr := s.writer.Write(pt)      // write plaintext slice to writer
 			lengthWritten += uint64(nw)         // update output length
 			if wErr != nil {                    // an error occurred during write
-				error = wErr
+				err = wErr
 				return
 			}
 			if final { // this was the last chunk, we're done
 				if more { // but the was extraneous data
-					error = ErrExtraData // set informative error
+					err = ErrExtraData // set informative error
 				}
 				break
 			}
 		} else { // possibly fatal error occurred during read
-			error = rErr
+			err = rErr
 			return
 		}
 
@@ -141,3 +143,6 @@ func (ae *Aenker) decryptChunkStream(w io.Writer, r io.Reader) (lengthWritten ui
 	return
 
 }
+
+// ErrExtraData is an informative error to signal that there was extraneous data after last chunk
+var ErrExtraData = errors.New("aenker: extraneous data after ciphertext")

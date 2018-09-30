@@ -4,20 +4,12 @@
 package ae
 
 import (
-	"bufio"
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
 )
-
-// find out if the reader is exhausted by
-// peeking ahead one byte
-func eof(r *bufio.Reader) bool {
-	_, err := r.Peek(1)
-	return err == io.EOF
-}
 
 // any non-nil error is a fatal failure.
 // print error to stderr and exit
