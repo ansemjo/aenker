@@ -7,7 +7,7 @@ OUTPUT := aenker
 .PHONY: build
 build : $(OUTPUT)
 $(OUTPUT) : $(shell find * -type f -name '*.go') go.mod go.sum
-	CGO_ENABLED=0 go build -ldflags '-s -w' -o "$(OUTPUT)"
+	CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -ldflags '-s -w' -o "$(OUTPUT)"
 
 # ansemjo/makerelease targets
 include makerelease
