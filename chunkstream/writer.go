@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/ansemjo/aenker/ae/padding"
+	"github.com/ansemjo/aenker/padding"
 )
 
 type ChunkWriter struct {
