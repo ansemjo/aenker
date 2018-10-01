@@ -15,7 +15,7 @@ type ChunkWriter struct {
 	err       error
 }
 
-func NewChunkWriter(w io.Writer, key, info []byte, chunksize int) (*ChunkWriter, error) {
+func NewChunkWriter(w io.Writer, key, info []byte, chunksize int) (io.WriteCloser, error) {
 
 	cw := &ChunkWriter{chunksize: chunksize, writer: w}
 	var err error
