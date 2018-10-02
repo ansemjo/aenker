@@ -1,5 +1,4 @@
-// Package chunkstream provides a Writer and a Reader to encrypt or decrypt
-// data in small authenticated chunks.
+// Package chunkstream provides chunked readers and writers; You probably want the ae package.
 //
 // You probably want ae.NewWriter() and ae.NewReader() rather than these chunkStreamer
 // wrappers. The AEAD is used with a simple nonce counter, so you MUST to provide a

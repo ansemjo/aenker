@@ -80,7 +80,7 @@ func (cr *chunkReader) open() (err error) {
 	if err != nil {
 		return
 	}
-	final := padding.RemovePadding(&chunk)
+	final := padding.Remove(&chunk)
 	_, err = cr.buf.Write(chunk)
 	if err != nil {
 		return

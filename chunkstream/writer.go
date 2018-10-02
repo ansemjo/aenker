@@ -83,9 +83,9 @@ func (cw *chunkWriter) Write(data []byte) (n int, err error) {
 func (cw *chunkWriter) seal(final bool) (err error) {
 
 	chunk := cw.buf.Next(cw.chunksize - 1)
-	padding.AddPadding(&chunk, final, cw.chunksize) // add padding to plaintext
-	ct := cw.chipherer.Seal(chunk)                  // encrypt padded data, increment nonce
-	_, err = cw.writer.Write(ct)                    // write ciphertext to writer
+	padding.Add(&chunk, final, cw.chunksize) // add padding to plaintext
+	ct := cw.chipherer.Seal(chunk)           // encrypt padded data, increment nonce
+	_, err = cw.writer.Write(ct)             // write ciphertext to writer
 	return
 
 }

@@ -1,37 +1,35 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
+// Package padding adds or removes padding to a plaintext slice.
 package padding
 
 import (
 	"crypto/subtle"
 )
 
-// chunktypetype signals what type of padding
+// chunktype signals what type of padding
 // is to be expected and removed during unpad
-type chunktypetype byte
+type chunktype byte
 
+// The possible final bytes to indicate the type of this chunk.
 const (
-	running  chunktypetype = 0 // a common chunk which is followed by many like itself ...
-	unpadded chunktypetype = 1 // a final chunk that fits right inside and needs no padding
-	padded   chunktypetype = 2 // a final chunk that requires padding
+	Running  chunktype = '\x00' // a common chunk which is followed by many like itself ...
+	Unpadded chunktype = '\x01' // a final chunk that fits right inside and needs no padding
+	Padded   chunktype = '\x02' // a final chunk that requires padding
 )
 
-// AddPadding appends one or more padding bytes at the end of
-// the slice, depending on whether it is a running or a
-// final chunk from a given sequence. If padding is needed, the
-// following rules apply:
+// Add appends one or more padding bytes at the end of the slice, depending on whether it is
+// a running or a final chunk from a given sequence. If padding is needed, the following rules apply:
+//  the last data byte is NOT \x00 --> pad with \x00 bytes
+//  the last data byte is \x00     --> pad with \x01 bytes
 //
-// - the last data byte is NOT 0x00 --> pad with 0x00 bytes
-// - the last data byte is 0x00 --> pad with 0x01 bytes
+// The very last appended byte indicates the type of chunk and wether padding was applied or not.
+// See https://rwc.iacr.org/2018/Slides/Hansen.pdf, page 10 for details.
 //
-// The very last appended byte indicates the type of chunk and
-// wether padding was applied or not.
-//
-// See https://rwc.iacr.org/2018/Slides/Hansen.pdf, page 10.
-// TODO: should probably return error instead of panicking
-//! WARN: not constant time, might open up side-channels
-func AddPadding(slice *[]byte, final bool, capacity int) {
+//! WARNING: not constant time, might open up side-channels
+func Add(slice *[]byte, final bool, capacity int) {
+	// TODO: should probably return error instead of panicking
 
 	length := len(*slice)
 	free := capacity - length
@@ -42,7 +40,7 @@ func AddPadding(slice *[]byte, final bool, capacity int) {
 			panic("must have exactly one byte free")
 		}
 
-		*slice = append(*slice, byte(running)) // append running chunk marker
+		*slice = append(*slice, byte(Running)) // append running chunk marker
 
 	} else {
 
@@ -64,9 +62,9 @@ func AddPadding(slice *[]byte, final bool, capacity int) {
 		}
 
 		if free > 1 { // if we had to use at least one padding byte ...
-			*slice = append(*slice, byte(padded)) // mark this chunk as padded
+			*slice = append(*slice, byte(Padded)) // mark this chunk as padded
 		} else {
-			*slice = append(*slice, byte(unpadded)) // otherwise unpadded
+			*slice = append(*slice, byte(Unpadded)) // otherwise unpadded
 		}
 
 	}
@@ -74,16 +72,16 @@ func AddPadding(slice *[]byte, final bool, capacity int) {
 
 }
 
-// RemovePadding looks at a chunk to see how much padding must
-// be removed, which was previously added with AddPadding.
-// The last byte indicates the padding to be expected and
-// wether it was a final chunk of a sequence. This information
-// is returned as `final`.
-// See AddPadding comment for further specifications.
-// TODO: should probably return error instead of panicking
-//! WARNING: This is my best-effor attempt of creating a constant-
-//! time function. Tests with oreparaz/dudect do look promising though.
-func RemovePadding(chunk *[]byte) (final bool) {
+// Remove removes padding which was previously added with Add(). The last byte indicates
+// the padding to be expected and wether it was a final chunk of a sequence. This information
+// is returned as `final`. See Add() comment for further specifications.
+//
+//! WARNING: This is my best-effor attempt of creating a constant-time function. Tests with
+// https://github.com/oreparaz/dudect do look promising though.
+//
+// When used with authenticated encryption this might not even be necessary anyway.
+func Remove(chunk *[]byte) (final bool) {
+	// TODO: should probably return error instead of panicking
 
 	length := len(*chunk)        // get length of chunk
 	marker := (*chunk)[length-1] // get last byte, indicating the type
@@ -91,7 +89,7 @@ func RemovePadding(chunk *[]byte) (final bool) {
 	length--
 
 	// final if this was not a 'running' marker
-	final = !((subtle.ConstantTimeByteEq(marker, byte(running)) & 1) == 1)
+	final = !((subtle.ConstantTimeByteEq(marker, byte(Running)) & 1) == 1)
 
 	// early exit if this is not a final chunk
 	// this is not constant time, be we don't want to waste _too_ much time
