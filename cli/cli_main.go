@@ -11,44 +11,24 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   os.Args[0],
-	Short: "authenticated encryption on the commandline",
+	Use: "aenker",
 	Long: `aenker is a tool to encrypt files with an authenticated
 cipher (ChaCha20Poly1305) in a 'streamable' way by chunking
 the input into equally-sized parts.`,
-	Version: "0.3.6 (not built with build.go)",
-	Example: `
-Generate a new random key:
-  aenker kg -o ~/.aenker
-
-Encrypt a file:
-  aenker enc -i /path/to/secret/documents.tar.gz -o encrypted.tar.gz.ae
-
-Encrypt using pipes and redirection:
-  echo 'Hello, World!' | aenker e -f ./otherkey > hello.ae
-
-Decrypt and unpack an encrypted tar archive:
-  aenker dec -i encrypted.tar.gz.ae | tar -xzv`,
-}
-
-var gendocCmd = &cobra.Command{
-	Use:     "gen",
-	Aliases: []string{"generate"},
-	Short:   "Generate documentation or autocompletion",
+	Version: "0.4.0",
 }
 
 // Initialize cobra commander, disable sorting and
 // add commands. We do that here instead of in individual
 // file init()s because we want to define the sorting manually.
 func init() {
+	this := rootCmd
 	cobra.EnableCommandSorting = false
-	rootCmd.Flags().SortFlags = false
-	rootCmd.AddCommand(encryptCmd)
-	rootCmd.AddCommand(decryptCmd)
-	rootCmd.AddCommand(keygenCmd)
-	rootCmd.AddCommand(gendocCmd)
-	gendocCmd.AddCommand(docsCmd)
-	gendocCmd.AddCommand(completionCmd)
+	this.Flags().SortFlags = false
+
+	EncryptCommand(this)
+	DecryptCommand(this)
+	this.AddCommand(keygenCmd)
 }
 
 // SetVersion sets the version string if a more specific

@@ -39,7 +39,7 @@ func NewWriter(w io.Writer, public *[32]byte) (cw io.WriteCloser, err error) {
 		return
 	}
 
-	return chunkstream.NewChunkWriter(w, key, head, Chunksize)
+	return chunkstream.NewWriter(w, key, head, Chunksize)
 
 }
 
@@ -58,6 +58,6 @@ func NewReader(r io.Reader, private *[32]byte) (cr io.Reader, err error) {
 		return
 	}
 
-	return chunkstream.NewChunkReader(r, key, head, Chunksize)
+	return chunkstream.NewReader(r, key, head, Chunksize)
 
 }

@@ -1,7 +1,7 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
-package cli
+package cobraflags
 
 import (
 	"os"
@@ -9,18 +9,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//type CmdCheckFunc func(cmd *cobra.Command) error
+// some common options when opening files
+var (
+	CreateExclusive = os.O_CREATE | os.O_EXCL | os.O_WRONLY
+)
 
 type FileFlag struct {
-	File  *os.File
-	Check CmdCheckFunc
+	File *os.File
+	Open func(cmd *cobra.Command) error
 }
 
 type FileFlagOptions struct {
-	Flag  string
-	Short string
-	Usage string
-	Open  func(string) (*os.File, error)
+	Flag    string
+	Short   string
+	Usage   string
+	Open    func(string) (*os.File, error)
+	Default *os.File
 }
 
 func AddFileFlag(cmd *cobra.Command, opts FileFlagOptions) *FileFlag {
@@ -30,7 +34,7 @@ func AddFileFlag(cmd *cobra.Command, opts FileFlagOptions) *FileFlag {
 	flag := &FileFlag{}
 
 	// build check function
-	flag.Check = func(cmd *cobra.Command) (err error) {
+	flag.Open = func(cmd *cobra.Command) (err error) {
 		// if flag was given
 		if cmd.Flag(opts.Flag).Changed {
 			// open with passed function
@@ -39,8 +43,9 @@ func AddFileFlag(cmd *cobra.Command, opts FileFlagOptions) *FileFlag {
 				return err
 			}
 			flag.File = f
+		} else {
+			flag.File = opts.Default
 		}
-
 		return
 	}
 
