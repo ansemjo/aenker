@@ -9,12 +9,14 @@ import (
 	"golang.org/x/crypto/hkdf"
 )
 
-// Derive uses HKDF to generate a 32 byte key. Info will be
-// assembled as keyderivation.Info+" "+info.
-func Derive(secret, salt []byte, info string) (key []byte) {
+// Hash is the hash function used in HKDF
+var Hash = Blake2b384
+
+// HKDF uses crypto/hkdf to generate a single 32 byte key with the Hash defined at package level.
+func HKDF(secret, salt []byte, info string) (key []byte) {
 
 	// instantiate hkdf
-	hkdf := hkdf.New(Hash, secret, salt, []byte(Info+" "+info))
+	hkdf := hkdf.New(Hash, secret, salt, []byte(info))
 
 	// read 32 bytes
 	key = make([]byte, 32)

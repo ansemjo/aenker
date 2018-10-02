@@ -5,23 +5,23 @@ import (
 	"golang.org/x/crypto/curve25519"
 )
 
-// Symmetric derives a 32 byte key from a high-entropy secret and a salt.
-func Symmetric(secret, salt []byte) (key []byte) {
-	return Derive(secret, salt, "symmetric")
-}
-
 // Password derives a 32 byte key from a password and salt with Argon2i and
 // the predefined cost settings time=16, memory=64MB, threads=2.
-func Password(password, salt []byte) (key []byte) {
-	pwhash := argon2.Key(password, salt, 16, 64*1024, 2, 32)
-	return Derive(pwhash, nil, "password")
+func Password(password []byte, salt string) (key []byte) {
+	return argon2.Key(password, []byte(salt), 16, 64*1024, 2, 32)
 }
 
-// Elliptic derives a key by performing Diffie-Hellman with a private and a
-// peer's public key over Curve25519. Will use [32]byte arrays internally, so
-// make sure to pass 32 byte slices and especially do not use nil for peer!
-func Elliptic(private, peer []byte) (key []byte) {
+// Elliptic perform anonymous Diffie-Hellman and then derives a 32 byte
+// key with HKDF from the resulting shared secret.
+//
+// Salt and info may be nil/"" but provide additional entropy / context for HKDF.
+func Elliptic(private, peer *[32]byte, salt []byte, info string) (key []byte) {
+
+	// perform anonymous diffie-hellman
 	shared := new([32]byte)
-	curve25519.ScalarMult(shared, get32(private), get32(peer))
-	return Derive(shared[:], nil, "elliptic")
+	curve25519.ScalarMult(shared, private, peer)
+
+	// derive key with hkdf
+	return HKDF(shared[:], salt, info)
+
 }

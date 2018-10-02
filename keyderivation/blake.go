@@ -23,7 +23,7 @@ func unkeyed(newkeyed func([]byte) (hash.Hash, error)) func() hash.Hash {
 
 }
 
-// Unkeyed Blake2b Hashes
+// Unkeyed Blake2b Hashes for use in the crypto.hkdf.New constructor
 var (
 	Blake2b256 = unkeyed(blake2b.New256)
 	Blake2b384 = unkeyed(blake2b.New384)

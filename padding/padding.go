@@ -33,8 +33,6 @@ const (
 //! WARN: not constant time, might open up side-channels
 func AddPadding(slice *[]byte, final bool, capacity int) {
 
-	//! we'll assume that the capacity of the passed slice is the
-	//! desired chunksize and reuse that memory
 	length := len(*slice)
 	free := capacity - length
 

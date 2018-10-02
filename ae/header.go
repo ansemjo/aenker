@@ -4,69 +4,77 @@
 package ae
 
 import (
+	"bytes"
 	"crypto/rand"
-	"fmt"
+	"encoding/binary"
+	"errors"
 	"io"
+
+	"github.com/ansemjo/aenker/keyderivation"
 )
 
-// "aenker" + version + kdf mode + chunksize + nonce
-const aenkerV2HeaderLen = 6 + 1 + 1 + 2 + 32
+// the two bytes after 'aenker' are the first two bytes of its blake2b hash:
+// >>> hashlib.blake2b(b'aenker').digest()[:2]
+// b'\xe7\x9e'
+const filemagic = "aenker\xe7\x9e"
 
-func (ae *Aenker2) OpenHeader(r io.Reader) (err error) {
-	this := "ae.openHeader"
-	E := func(s string) error { return errfmt(this, s) }
+// used as context info for hkdf during key derivation
+const keyinfo = "aenker elliptic"
 
-	// read entire header at once
-	header, err := readBytes(r, aenkerV2HeaderLen)
-	if err != nil {
-		return fmt.Errorf("%s: short header read: %s", this, err)
-	}
+func WriteNewHeader(writer io.Writer, peer *[32]byte) (key []byte, err error) {
 
-	// check magic
-	m := header[:6]
-	if magic != string(m) {
-		return E("wrong magic bytes")
-	}
+	// create new header struct and copy magic bytes
+	header := &header{}
+	copy(header.magic[:], []byte(filemagic))
 
-	// ignore version for now
-
-	// parse key derivation mode
-	k := header[7]
-	if k > kdfModeMax {
-		return E("unknown key derivation mode")
-	}
-	ae.kdf = kdfMode(k)
-
-	// read chunksize
-	cs := header[8:10]
-	ae.chunksize = btou16(cs)
-
-	// read nonce
-	n := header[10:42]
-	ae.nonce = n
-
-	return
-
-}
-
-func (ae *Aenker2) NewHeader(w io.Writer, m kdfMode, c uint16) (n int, err error) {
-
-	// allocate header
-	header := make([]byte, 42)
-
-	// read random nonce
-	_, err = io.ReadFull(rand.Reader, header[10:42])
+	// new random salt
+	_, err = io.ReadFull(rand.Reader, header.salt[:])
 	if err != nil {
 		return
 	}
 
-	// insert other data
-	copy(header[:6], []byte(magic))
-	copy(header[6:7], []byte{'\x01'})
-	copy(header[7:8], []byte{byte(m)})
-	copy(header[8:10], u16tob(c))
+	// new ephemeral secret key
+	_, err = io.ReadFull(rand.Reader, header.ephemeral[:])
+	if err != nil {
+		return
+	}
+	// derive shared key for chunkstream
+	key = keyderivation.Elliptic(&header.ephemeral, peer, header.salt[:], keyinfo)
 
-	// write out
-	return w.Write(header)
+	// replace ephemeral with its public key
+	header.ephemeral = *keyderivation.Public(&header.ephemeral)
+
+	// write header
+	err = binary.Write(writer, binary.BigEndian, header)
+	if err != nil {
+		key = nil
+		return
+	}
+
+	// should have written 48 bytes if successful
+	return key, err
+
+}
+
+func OpenHeader(reader io.Reader, private *[32]byte) (key []byte, err error) {
+
+	// create new header struct
+	header := &header{}
+
+	// read and decode header
+	err = binary.Read(reader, binary.BigEndian, header)
+	if err != nil {
+		return
+	}
+
+	// check magic bytes, public data so no constant-time implementation
+	if bytes.Compare(header.magic[:], []byte(filemagic)) != 0 {
+		err = errors.New("unknown magic bytes")
+	}
+
+	// derive shared key for chunkstream
+	key = keyderivation.Elliptic(private, &header.ephemeral, header.salt[:], keyinfo)
+
+	return
 
 }
