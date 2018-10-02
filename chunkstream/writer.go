@@ -7,7 +7,7 @@ import (
 	"github.com/ansemjo/aenker/padding"
 )
 
-type ChunkWriter struct {
+type chunkWriter struct {
 	chipherer *chunkCipherer
 	buf       *bytes.Buffer
 	chunksize int
@@ -15,9 +15,17 @@ type ChunkWriter struct {
 	err       error
 }
 
-func NewChunkWriter(w io.Writer, key, info []byte, chunksize int) (io.WriteCloser, error) {
+// NewWriter instantiates a new authenticated cipher from NewAEAD with the given key and
+// returns a WriteCloser. Any writes to that will be split into small chunks and is then
+// encrypted and authenticated individually before being written to the passed Writer.
+//
+// You MUST call Close() when you're done to ensure the final chunk is written.
+//
+// You MUST use a unique key because internally a simple incrementing counter is used as
+// a nonce, so two streams encrypted with the same key will compromise confidentiality!
+func NewWriter(w io.Writer, key, info []byte, chunksize int) (io.WriteCloser, error) {
 
-	cw := &ChunkWriter{chunksize: chunksize, writer: w}
+	cw := &chunkWriter{chunksize: chunksize, writer: w}
 	var err error
 
 	cw.chipherer, err = newChunkCipherer(key, info)
@@ -30,7 +38,7 @@ func NewChunkWriter(w io.Writer, key, info []byte, chunksize int) (io.WriteClose
 
 }
 
-func (cw *ChunkWriter) Write(data []byte) (n int, err error) {
+func (cw *chunkWriter) Write(data []byte) (n int, err error) {
 
 	// previous errors
 	if cw.err != nil {
@@ -72,7 +80,7 @@ func (cw *ChunkWriter) Write(data []byte) (n int, err error) {
 
 }
 
-func (cw *ChunkWriter) seal(final bool) (err error) {
+func (cw *chunkWriter) seal(final bool) (err error) {
 
 	chunk := cw.buf.Next(cw.chunksize - 1)
 	padding.AddPadding(&chunk, final, cw.chunksize) // add padding to plaintext
@@ -82,6 +90,14 @@ func (cw *ChunkWriter) seal(final bool) (err error) {
 
 }
 
-func (cw *ChunkWriter) Close() (err error) {
+func (cw *chunkWriter) Close() (err error) {
 	return cw.seal(true)
+}
+
+// return smaller int
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

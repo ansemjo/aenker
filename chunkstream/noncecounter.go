@@ -13,7 +13,8 @@ type nonceCounter struct {
 	size  int
 }
 
-// NewNonce returns a new Nonce starting at 0
+// newNonceCounter returns a new counter starting at 0 that will output
+// slices with length 'size' upon calling Next().
 func newNonceCounter(size int) *nonceCounter {
 	return &nonceCounter{
 		nonce: make([]byte, 32),
@@ -21,8 +22,8 @@ func newNonceCounter(size int) *nonceCounter {
 	}
 }
 
-// Next outputs the current counter value as a 12-byte
-// slice and increments the internal counter
+// Next outputs the current counter value as a slice and then increments
+// the internal counter.
 func (nc *nonceCounter) Next() (nonce []byte) {
 	binary.LittleEndian.PutUint64(nc.nonce, nc.ctr)
 	nc.ctr++

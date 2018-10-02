@@ -7,7 +7,7 @@ import (
 	"github.com/ansemjo/aenker/padding"
 )
 
-type ChunkReader struct {
+type chunkReader struct {
 	chipherer *chunkCipherer
 	buf       *bytes.Buffer
 	chunksize int
@@ -15,9 +15,17 @@ type ChunkReader struct {
 	err       error
 }
 
-func NewChunkReader(r io.Reader, key, info []byte, chunksize int) (io.Reader, error) {
+// NewReader instantiates a new authenticated cipher from NewAEAD with the given key and
+// returns a Reader. Any reads from that will read and buffer an appropriate amount of encrypted
+// data to return the next chunk before being decrypted and authenticated. Only successfully
+// authenticated data is ever returned.
+//
+// Do not increase the chunksize manually to compensate for AEAD overhead, the chunkCipherer within
+// will do that automatically. I.e. if you encrypted with chunksize=2048 you need to decrypt with
+// chunksize=2048.
+func NewReader(r io.Reader, key, info []byte, chunksize int) (io.Reader, error) {
 
-	cr := &ChunkReader{reader: r}
+	cr := &chunkReader{reader: r}
 	var err error
 
 	cr.chipherer, err = newChunkCipherer(key, info)
@@ -32,7 +40,7 @@ func NewChunkReader(r io.Reader, key, info []byte, chunksize int) (io.Reader, er
 
 }
 
-func (cr *ChunkReader) Read(p []byte) (n int, err error) {
+func (cr *chunkReader) Read(p []byte) (n int, err error) {
 
 	// previous errors
 	if cr.err != nil {
@@ -56,11 +64,10 @@ func (cr *ChunkReader) Read(p []byte) (n int, err error) {
 	}
 
 	return cr.buf.Read(p)
-	//return io.ReadFull(cr.reader, p)
 
 }
 
-func (cr *ChunkReader) open() (err error) {
+func (cr *chunkReader) open() (err error) {
 
 	// TODO: direct copy to second internal buffer with io.CopyN ?
 	chunk := make([]byte, cr.chunksize)
