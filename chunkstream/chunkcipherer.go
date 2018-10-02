@@ -1,3 +1,6 @@
+// Copyright (c) 2018 Anton Semjonov
+// Licensed under the MIT License
+
 // Package chunkstream provides chunked readers and writers; You probably want the ae package.
 //
 // You probably want ae.NewWriter() and ae.NewReader() rather than these chunkStreamer
