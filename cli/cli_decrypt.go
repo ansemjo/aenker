@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func DecryptCommand(parent *cobra.Command) {
+func AddDecryptCommand(parent *cobra.Command) {
 
 	var key *cf.Key32Flag
 	command := &cobra.Command{
 
 		Use:     "decrypt",
-		Aliases: []string{"dec", "d"},
+		Aliases: []string{"open", "d"},
 		Short:   "decrypt a file",
 		Long:    "Decrypt from Stdin and write the plaintext to Stdout.",
 

@@ -26,9 +26,8 @@ func init() {
 	cobra.EnableCommandSorting = false
 	this.Flags().SortFlags = false
 
-	EncryptCommand(this)
-	DecryptCommand(this)
-	this.AddCommand(keygenCmd)
+	AddEncryptCommand(this)
+	AddDecryptCommand(this)
 }
 
 // SetVersion sets the version string if a more specific

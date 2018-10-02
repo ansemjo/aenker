@@ -9,46 +9,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// some common options when opening files
-var (
-	CreateExclusive = os.O_CREATE | os.O_EXCL | os.O_WRONLY
-)
-
 type FileFlag struct {
 	File *os.File
 	Open func(cmd *cobra.Command) error
 }
 
-type FileFlagOptions struct {
-	Flag    string
-	Short   string
-	Usage   string
-	Open    func(string) (*os.File, error)
-	Default *os.File
-}
-
-func AddFileFlag(cmd *cobra.Command, opts FileFlagOptions) *FileFlag {
+func AddFileFlag(cmd *cobra.Command, flag, short, usage string,
+	open func(string) (*os.File, error), fallback *os.File) (ff *FileFlag) {
 
 	// add flag to command
-	str := cmd.Flags().StringP(opts.Flag, opts.Short, "", opts.Usage)
-	flag := &FileFlag{}
+	str := cmd.Flags().StringP(flag, short, "", usage)
 
-	// build check function
-	flag.Open = func(cmd *cobra.Command) (err error) {
-		// if flag was given
-		if cmd.Flag(opts.Flag).Changed {
-			// open with passed function
-			f, err := opts.Open(*str)
-			if err != nil {
-				return err
+	// return struct with open command for PreRunE
+	return &FileFlag{
+		Open: func(cmd *cobra.Command) (err error) {
+			if cmd.Flag(flag).Changed {
+
+				// open given file with passed function
+				f, err := open(*str)
+				if err != nil {
+					return err
+				}
+				ff.File = f
+
+			} else {
+				// if falg wasn't given, use fallback
+				ff.File = fallback
 			}
-			flag.File = f
-		} else {
-			flag.File = opts.Default
-		}
-		return
+
+			return
+		},
 	}
-
-	return flag
-
 }

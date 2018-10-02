@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func EncryptCommand(parent *cobra.Command) {
+func AddEncryptCommand(parent *cobra.Command) {
 
 	var key *cf.Key32Flag
 	command := &cobra.Command{
 
 		Use:     "encrypt",
-		Aliases: []string{"enc", "e"},
+		Aliases: []string{"seal", "e"},
 		Short:   "encrypt a file",
 		Long:    "Encrypt Stdin and write the ciphertext to Stdout.",
 
