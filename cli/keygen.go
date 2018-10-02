@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	AddKeygenCommand(rootCmd)
+	AddKeygenCommand(RootCommand)
 }
 
 func AddKeygenCommand(parent *cobra.Command) {
