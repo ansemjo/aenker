@@ -15,7 +15,7 @@ import (
 
 type Key32Flag struct {
 	Key   *[32]byte
-	Check func(cmd *cobra.Command) error
+	Check func(cmd *cobra.Command, args []string) error
 }
 
 // AddKey32Flag adds a flag to a command, which can either be a valid base64
@@ -27,7 +27,7 @@ func AddKey32Flag(cmd *cobra.Command, flag, short, usage string, fallback *os.Fi
 
 	// return struct with check function for PreRunE
 	return &Key32Flag{
-		Check: func(cmd *cobra.Command) (err error) {
+		Check: func(cmd *cobra.Command, args []string) (err error) {
 			if cmd.Flag(flag).Changed {
 
 				// given string is a valid key

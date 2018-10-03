@@ -12,7 +12,7 @@ import (
 
 type DirFlag struct {
 	Dir   string
-	Check func(cmd *cobra.Command) error
+	Check func(cmd *cobra.Command, args []string) error
 }
 
 func AddDirFlag(cmd *cobra.Command, flag, short, value, usage string) (df *DirFlag) {
@@ -22,7 +22,7 @@ func AddDirFlag(cmd *cobra.Command, flag, short, value, usage string) (df *DirFl
 
 	// return struct with check command for PreRunE
 	return &DirFlag{
-		Check: func(cmd *cobra.Command) (err error) {
+		Check: func(cmd *cobra.Command, args []string) (err error) {
 
 			stat, err := os.Stat(*str)
 			if err != nil {

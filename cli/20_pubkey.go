@@ -25,21 +25,8 @@ func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 		Aliases: []string{"pk"},
 		Short:   "calculate public key",
 		Long:    "Calculate the public key of a Curve25519 private key.",
-		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-
-			// input key
-			err = private.Check(cmd)
-			if err != nil {
-				return
-			}
-
-			// public key file
-			err = public.Open(cmd)
-			if err != nil {
-				return
-			}
-
-			return
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return cf.CheckAll(cmd, args, public.Open, private.Check)
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 

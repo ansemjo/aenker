@@ -45,7 +45,7 @@ func AddDocumentationCommand(parent, root *cobra.Command) *cobra.Command {
 			return CheckAll(cmd, args, cobra.MaximumNArgs(1), cobra.OnlyValidArgs)
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return dir.Check(cmd)
+			return CheckAll(cmd, args, dir.Check)
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 

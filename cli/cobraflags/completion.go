@@ -22,7 +22,7 @@ func AddCompletionCommand(parent, root *cobra.Command) *cobra.Command {
 			return CheckAll(cmd, args, cobra.MaximumNArgs(1), cobra.OnlyValidArgs)
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return file.Open(cmd)
+			return CheckAll(cmd, args, file.Open)
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 

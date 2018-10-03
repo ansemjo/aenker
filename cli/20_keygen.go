@@ -37,13 +37,13 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// output file
-			err = private.Open(cmd)
+			err = private.Open(cmd, args)
 			if err != nil {
 				return
 			}
 
 			// public key file
-			err = public.Open(cmd)
+			err = public.Open(cmd, args)
 			if err != nil {
 				os.Remove(private.File.Name())
 				return
