@@ -20,7 +20,7 @@ func init() {
 	AddKeygenCommand(RootCommand)
 }
 
-func AddKeygenCommand(parent *cobra.Command) {
+func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 
 	var private *cf.FileFlag
 	var public *cf.FileFlag
@@ -86,17 +86,14 @@ func AddKeygenCommand(parent *cobra.Command) {
 	}
 	command.Flags().SortFlags = false
 
-	// file opener
-	exclusive := func(mode os.FileMode) func(name string) (*os.File, error) {
-		return func(name string) (*os.File, error) {
-			return os.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_WRONLY, mode)
-		}
-	}
-
 	// add the output file flags
-	private = cf.AddFileFlag(command, "out", "o", "write output to file (default: stdout)", exclusive(0600), os.Stdout)
-	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)", exclusive(0644), os.Stdout)
+	private = cf.AddFileFlag(command, "out", "o", "write output to file (default: stdout)",
+		cf.Exclusive(0600), os.Stdout)
+
+	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)",
+		cf.Exclusive(0644), os.Stdout)
 
 	AddPubkeyCommand(command)
 	parent.AddCommand(command)
+	return command
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddPubkeyCommand(parent *cobra.Command) {
+func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 
 	var private *cf.Key32Flag
 	var public *cf.FileFlag
@@ -54,16 +54,11 @@ func AddPubkeyCommand(parent *cobra.Command) {
 	}
 	command.Flags().SortFlags = false
 
-	// file opener
-	exclusive := func(mode os.FileMode) func(name string) (*os.File, error) {
-		return func(name string) (*os.File, error) {
-			return os.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_WRONLY, mode)
-		}
-	}
-
 	// add the output file flags
 	private = cf.AddKey32Flag(command, "key", "k", "private key (default: stdin)", os.Stdin)
-	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)", exclusive(0644), os.Stdout)
+	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)",
+		cf.Exclusive(0644), os.Stdout)
 
 	parent.AddCommand(command)
+	return command
 }

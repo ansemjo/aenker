@@ -12,36 +12,36 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func AddDecryptCommand(parent *cobra.Command) {
+func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 
 	var key *cf.Key32Flag
 	command := &cobra.Command{
 
-		Use:     "decrypt",
-		Aliases: []string{"open", "d"},
-		Short:   "decrypt a file",
-		Long:    "Decrypt from Stdin and write the plaintext to Stdout.",
+		Use:     "encrypt",
+		Aliases: []string{"seal", "e"},
+		Short:   "encrypt a file",
+		Long:    "Encrypt Stdin and write the ciphertext to Stdout.",
 
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 			return key.Check(cmd)
 		},
 
-		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			defer func() { fatal(err) }()
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-			ae, err := ae.NewReader(os.Stdin, key.Key)
+			ae, err := ae.NewWriter(os.Stdout, key.Key)
 			fatal(err)
-			_, err = io.Copy(os.Stdout, ae)
+			defer ae.Close()
+			io.Copy(ae, os.Stdin)
 			return
 
 		},
 	}
 	command.Flags().SortFlags = false
 
-	// add required private key flag
-	key = cf.AddKey32Flag(command, "key", "k", "your private key", nil)
+	// add required peer key flag
+	key = cf.AddKey32Flag(command, "peer", "p", "receiver's public key", nil)
 	command.MarkFlagRequired("key")
 
 	parent.AddCommand(command)
+	return command
 }

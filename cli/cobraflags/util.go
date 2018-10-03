@@ -1,14 +1,26 @@
 package cobraflags
 
-import "github.com/spf13/cobra"
+import (
+	"os"
+
+	"github.com/spf13/cobra"
+)
 
 // run pre-run checks of cobra flags
-func checkAll(cmd *cobra.Command, checker ...func(*cobra.Command) error) (err error) {
+func CheckAll(cmd *cobra.Command, args []string, checker ...func(*cobra.Command, []string) error) (err error) {
 	for _, ch := range checker {
-		err = ch(cmd)
+		err = ch(cmd, args)
 		if err != nil {
 			return
 		}
 	}
 	return
+}
+
+// Exclusive is a fileopener for FileFlag, which attempts to open the file for
+// writing exclusively. I.e. it fails if the file already exists.
+func Exclusive(mode os.FileMode) func(name string) (*os.File, error) {
+	return func(name string) (*os.File, error) {
+		return os.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_WRONLY, mode)
+	}
 }
