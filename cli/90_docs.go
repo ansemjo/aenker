@@ -1,3 +1,6 @@
+// Copyright (c) 2018 Anton Semjonov
+// Licensed under the MIT License
+
 // +build !nodocs
 
 package cli
