@@ -7,8 +7,17 @@ package cli
 
 import (
 	cf "github.com/ansemjo/aenker/cli/cobraflags"
+	"github.com/spf13/cobra"
 )
 
 func init() {
-	cf.AddGeneratorCommand(RootCommand)
+	AddDocsGenCommand(RootCommand)
+}
+
+// AddDocsGenCommand adds the manuals and autocompletion generator subcommands to
+// a cobra command.
+//
+// It can be disabled by building with the tag 'nodocs' to save some space.
+func AddDocsGenCommand(root *cobra.Command) *cobra.Command {
+	return cf.AddGeneratorCommand(root)
 }

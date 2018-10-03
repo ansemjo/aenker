@@ -1,6 +1,7 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
+// Package cli implements the commandline interface using https://github.com/spf13/cobra.
 package cli
 
 import (
@@ -9,12 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RootCommand is the root cobra command to be executed with Execute().
 var RootCommand = &cobra.Command{
 	Use: "aenker",
 	Long: `aenker is a tool to encrypt files with an authenticated
 cipher (ChaCha20Poly1305) in a 'streamable' way by chunking
 the input into equally-sized parts.`,
-	Version: trueversion(),
+	Version: SpecificVersion(),
 }
 
 // Initialize cobra commander, disable sorting and

@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// AddEncryptCommand adds the encryption subcommand to a cobra command.
 func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 
 	var key *cf.Key32Flag

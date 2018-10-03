@@ -20,6 +20,10 @@ func init() {
 	AddKeygenCommand(RootCommand)
 }
 
+// AddKeygenCommand add the key generator and pubkey converter subcommands to a cobra command.
+//
+// It can be disabled by building with the tag 'nokeygen' to save some space. You can use
+// https://github.com/ansemjo/curvekey instead.
 func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 
 	var private *cf.FileFlag

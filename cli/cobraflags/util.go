@@ -1,6 +1,8 @@
 // Copyright (c) 2018 Anton Semjonov
 // Licensed under the MIT License
 
+// Package cobraflags implements some Flag and Command addons. They are split into
+// a seperate package to be able to move them to a sperate repository eventually.
 package cobraflags
 
 import (

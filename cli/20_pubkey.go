@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// AddPubkeyCommand adds the pubkey converter subcommand to a cobra command.
 func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 
 	var private *cf.Key32Flag
