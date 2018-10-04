@@ -5,6 +5,7 @@ package chunkstream
 
 import (
 	"bytes"
+	"errors"
 	"io"
 
 	"github.com/ansemjo/aenker/padding"
@@ -16,6 +17,7 @@ type chunkReader struct {
 	chunksize int
 	reader    io.Reader
 	err       error
+	final     bool
 }
 
 // NewReader instantiates a new authenticated cipher from NewAEAD with the given key and
@@ -59,10 +61,17 @@ func (cr *chunkReader) Read(p []byte) (n int, err error) {
 	// decrypt more data
 	if cr.buf.Len() == 0 {
 		err = cr.open()
-		if err == io.EOF {
+		if err != nil {
+			// eof before the final chunk means truncated ciphertext
+			if !cr.final && (err == io.EOF || err == io.ErrUnexpectedEOF) {
+				err = errors.New("truncated ciphertext")
+			}
+			// any non-eof is probably some serious error
+			if err != io.EOF {
+				return
+			}
+			// eof with or after the final chunk is okay
 			cr.err = err
-		} else if err != nil {
-			return
 		}
 	}
 
@@ -79,18 +88,25 @@ func (cr *chunkReader) open() (err error) {
 		return
 	}
 
+	// decrypt and authenticate
 	chunk, err = cr.chipherer.Open(chunk)
 	if err != nil {
 		return
 	}
+
+	// remove padding and check if this is the last chunk
 	final := padding.Remove(&chunk)
-	_, err = cr.buf.Write(chunk)
-	if err != nil {
-		return
-	}
 	if final {
+		cr.final = true
 		err = io.EOF
 	}
+
+	// write to internal buffer
+	_, e := cr.buf.Write(chunk)
+	if e != nil {
+		err = e
+	}
+
 	return
 
 }
