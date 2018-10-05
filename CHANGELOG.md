@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.4.0
+
+Major overhaul. Aenker is now an ECIES implementation, where curve25519 is used to perform anonymous
+diffie-hellman and an encryption key is derived using HKDF.
+
+the `build.go` script is ditched and releases are built using
+[mkr](https://github.com/ansemjo/makerelease).
+
+Please consult the readme and specification at this tag to find out more. Here is the commit
+overview since 0.3.6:
+
+```
+f485870 silence directory "changes" during release builds
+43180fe update readme and specification
+1250e68 add quasi-symmetric encryption mode
+ca95ca4 logic fix in chunkreader to handle truncated ciphertext
+83741d4 add input/output file flags to encrypt and decrypt
+f4dd216 add package and method comments in cli
+7880501 add a few missing license headers
+4ab5703 fix documentation/autocompletion commands, lexicographical init sort
+2b1a29c add proper version information with gitattributes
+4ff2034 improve keygen sumcommand and tweak FileFlag
+28e66dd fix cli in simplified form for now
+70b51e1 add some missing license headers
+deeb2b2 [broken] tidy up and document keyderivation and padding packages
+8f74f0b [broken] tidy up and document chunkstream package
+38b78f2 [broken cli] finish ae package with documentation
+f361abe [cli broken] new header format with only elliptic kdf support
+e861700 rename packages and remove old chunkstreamer
+e1f6378 implement a chunkreader which implements io.Reader
+48133a3 write a chunkwriter, which implements a simple WriteCloser interface
+aec4568 remove local debug files
+a7e5720 fix the chunkstream aead at package level
+b532659 define noncecounter output size upon creation
+2710beb added vscode debug launch configuration but don't track it
+caf5750 refactor keyderivation a little
+35fbb6e write the key derivation functions
+fd48d4c use the chunkstream subpackage
+fbbe564 [broken] add new header decoder and move files to subpackages
+a55ace8 rename aenker internals as ae
+2e0023f remove syscall import
+516103e add OS and ARCH in build target
+b254527 remove build.go dependency
+38067ac remove docs for now
+f765e60 added key derivation func for upcoming v2 format
+357e4cc added spreadsheet to calculate and visualize overhead
+a228d24 add metadata to mkr prepare and use the same build.go script
+8abd584 update mkrelease targets
+40b7630 make makefile compatible with ansemjo/makerelease
+```
+
 ## 0.3.6
 
 ### Added specification
