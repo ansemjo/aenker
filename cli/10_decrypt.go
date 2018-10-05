@@ -32,12 +32,13 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 		},
 
 		Run: func(cmd *cobra.Command, args []string) {
-			var err error
-			defer func() { fatal(err) }()
 
 			ae, err := ae.NewReader(input.File, key.Key)
 			fatal(err)
+
 			_, err = io.Copy(output.File, ae)
+			fatal(err)
+
 			return
 
 		},

@@ -64,7 +64,7 @@ func (cr *chunkReader) Read(p []byte) (n int, err error) {
 		if err != nil {
 			// eof before the final chunk means truncated ciphertext
 			if !cr.final && (err == io.EOF || err == io.ErrUnexpectedEOF) {
-				err = errors.New("truncated ciphertext")
+				err = errors.New("chunkreader: truncated ciphertext")
 			}
 			// any non-eof is probably some serious error
 			if err != io.EOF {

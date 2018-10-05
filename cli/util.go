@@ -15,7 +15,7 @@ var base64 = b64.StdEncoding.EncodeToString
 // print error to stderr and exit with nonzero status.
 func fatal(err error) {
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintln(os.Stderr, "FATAL:", err)
 		os.Exit(1)
 	}
 }
