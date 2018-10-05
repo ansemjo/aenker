@@ -8,7 +8,7 @@ mkrelease-prepare :
 
 EXT := $(if $(findstring windows,$(OS)),.exe)
 mkrelease :
-	OUTPUT=$(RELEASEDIR)/$(OUTPUT)-$(OS)-$(ARCH)$(EXT) make build
+	OUTPUT=$(RELEASEDIR)/$(OUTPUT)-$(OS)-$(ARCH)$(EXT) make --no-print-directory build
 
 mkrelease-finish :
 	upx -q $$(find $(RELEASEDIR)/* ! -name '*bsd-a*')
