@@ -1,134 +1,128 @@
-![](anchor.png)
-
-<small>Icon made by [Pixel perfect](https://www.flaticon.com/authors/pixel-perfect) from
-[flaticon.com](https://www.flaticon.com/) licensed by
-[Creative Commons BY 3.0](http://creativecommons.org/licenses/by/3.0/) </small>
-
 # aenker
 
-`aenker` is a simple commandline utility to encrypt files with an authenticated encryption scheme
-([ChaCha20Poly1305](https://cr.yp.to/chacha.html)).
+`aenker` is a simple commandline utility to encrypt files to a public key ([Curve25519][0]) with an
+authenticated encryption scheme ([ChaCha20Poly1305][1]). This is basically an [ECIES][2].
 
-It splits the input into smaller chunks internally and encrypts & authenticates them individually.
-Padding and concatenation is done similarly to
-[InterMAC](https://rwc.iacr.org/2018/Slides/Hansen.pdf):
+The input is split into smaller chunks internally and is encrypted & authenticated individually.
+Padding and concatenation is done similarly to [InterMAC][3]. The key used for encryption is derived
+with [HKDF][4] using [Blake2b][5] after performing anonymous Diffie-Hellman with a given public and
+a random ephemeral private key. All this is further described in the
+[specification](SPECIFICATION.md).
 
-```
-                 +---------+---------+---+
-   chunk + pad + |    1    |    2    | 3 +---+
-               | +----+----+-----+---+---+   |
-               v      |          |           |
-                 +----+----------+-----------v----+   0: running
-encrypt + auth + |plainpla|0|nplainpl|0|in.0000002|   1: no padding
-               | +-------+------------------------+   2: padding
-               v         |           |            |
-       +-----------------v-----------v------------v--------------+
-       |nonce|mek|z5Q71mOXmu|auth|MXA91ADUiy|auth|5KVhQbzBac|auth|
-       +-------^-------------------------------------------------+
-               |
-               +-+ encrypted random key
-```
+[0]: https://cr.yp.to/ecdh.html
+[1]: https://tools.ietf.org/html/rfc7539
+[2]: https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme
+[3]: https://rwc.iacr.org/2018/Slides/Hansen.pdf
+[4]: https://tools.ietf.org/html/rfc5869
+[5]: https://blake2.net/
+
+![](assets/overview.png)
 
 Authenticated encryption authenticates the ciphertext upon decryption and combined with the above
 construction any chunk reordering, bit-flips or even truncation can be detected and are shown as
 errors. Only ciphertext that has been successfully decrypted and authenticated is ever written to
-the output.
+the output. The chunking still alleviates the need to fit the entire file into memory at once or do
+two passes over all data. Thus you can also encrypt files of many gigabytes.
 
-The chunking still alleviates the need to fit the entire file into memory at once or do two passes
-over all data. Thus you can also encrypt files of many gigabytes.
+## usage
 
-The format is further described in [SPECIFICATION.md](SPECIFICATION.md).
+First, you need a keypair. To generate a new random keypair use the builtin keygenerator:
 
-## example usage
+    aenker kg -o ~/aenker.priv -p ~/aenker.pub
 
-Generate a new random key:
+Send your **public** key `aenker.pub` to anyone who wants to encrypt data for you, keep your private
+key .. well, private. **Note:** aenker only performs anonymous Diffie-Hellman and the keys are not
+signed or certified. To protect against man-in-the-middle attacks you should transfer the key over a
+secure channel or verify the integrity on a second channel.
 
-    $ aenker kg -o ~/.aenker
+Encrypt a simple message using the public key:
 
-Pack some documents and encrypt them:
+    echo 'Hello, World!' | aenker encrypt -p aenker.pub > message.ae
 
-    $ tar -czC ~/Documents . | aenker enc -o documents.tar.gz.ae
+Decrypt it using the private key:
 
-Decrypt a simple message:
+    aenker decrypt -k aenker.priv < message.ae
 
-    $ aenker dec -i message.txt.ae
-    Hello, World!
+You can specify input and output files with `-i`/`-o` and use the aliases `seal`/`open` which are
+commonly used with AEADs:
 
-Specify a key on the commandline (this is unsafe for various reasons and you should really use
-keyfiles generated with `aenker kg`):
+    aenker seal -i documents.tar -o documents.tar.ae -p recipient.pub
+    aenker open -i documents.tar.ae -k mykey.sec | tar xf -
 
-    $ aenker e -k lGLDUgFvp8TSwJ17VC9k0/T9mNWvfGoJ42zauMkAFBo= ...
+The key flags `-p`/`--peer` and `-k`/`--key` accept the base64-encoded keys on the commandline, too.
+This is not safe for various reasons, so avoid using it for your private key.
 
-### keyfile
+    aenker seal -p lGLDUgFvp8TSwJ17VC9k0/T9mNWvfGoJ42zauMkAFBo=
 
-Only the first line of the keyfile is read, so you can add as many comments as you like after that:
+### advanced key generation
 
-    $ cat mykey
-    tOnYoytjZpZQjSiEZO0RKYmOZHKJnjmurgKdoJlxB+Y=
-    I used this key for x, y and z ...
+Generally, Curve25519 - and thus aenker - accepts any 32 byte value as a key. You could generate a
+private key by other means and then only calculate the public key to distribute it.
+
+Just read from system randomness:
+
+    head -c32 /dev/urandom | base64 > privatekey
+    aenker keygen pubkey -k privatekey > publickey
+
+Or use a key derivation function like Argon2 with
+[ansemjo/stdkdf](https://github.com/ansemjo/stdkdf):
+
+    stdkdf -salt aenker | aenker kg pk > publickey
+    ... | aenker seal -p publickey > ciphertext
+    aenker open -i ciphertext -k $(stdkdf -salt aenker) | ...
+
+You can even use a single private key and pass the `--symmetric` flag when encrypting. This will
+derive the public key internally and proceed as usual but you will use the same key for decryption,
+which effectively turns this into a symmetric encryption.
 
 ## installation
 
 You can install from `master` with `go` (make sure `$GOPATH/bin/` is in your `$PATH`):
 
-    $ go get -u github.com/ansemjo/aenker
-    $ aenker --version
-    aenker version 0.3.5 (not built with build.go)
+    go get -u github.com/ansemjo/aenker
+    aenker --help
 
-Or clone the repository and use the included `build.go` program, which compiles a static binary and
-adds more specific information about the built version into the file (`vgo` is required for module
-vendoring before `go 1.11.0` is released):
-
-    $ go get golang.org/x/vgo
-    $ git clone https://github.com/ansemjo/aenker.git
-    $ cd aenker/
-    $ make
-    vgo mod vendor
-    go run build.go -o aenker --tempdir /tmp/aenker-build-tmpgopath
-    ./aenker --version
-    ./aenker version 0.3.5-4-ge1976f0-dirty
-    sha256sum --tag aenker
-    SHA256 (aenker) = 0ddd523be3aec435bb044946e1473c651d694658682fabc0b5c665210301b931
-
-If you have [upx](https://upx.github.io/) installed, you can further compress the binary, which
-results in approximately a third of the file size:
-
-    $ make compress
-
-Then install in the default user prefix `~/.local/` (make sure `~/.local/bin/` is in your `$PATH`):
-
-    $ make install
-
-Or globally with:
-
-    $ sudo make install PREFIX=/usr/local
+Or download a [release](https://github.com/ansemjo/aenker/releases) from GitHub and place it
+somewhere in your `$PATH`.
 
 ### documentation
 
-You can go to [docs/aenker.md](docs/aenker.md) if you're looking at this online.
+All of the commands output a nicely formatted help message, so you can use `--help` at any time:
 
-Installation via the makefile should also install manpages, so `man aenker` should work. Otherwise
-use:
+    aenker encrypt --help
 
-    $ aenker gen manual -d /tmp
-    $ man -M /tmp aenker
+Furthermore, you can go to [docs/aenker.md](docs/aenker.md) if you're looking at this online or
+install manpages with:
 
-[cobra]: https://github.com/spf13/cobra
-
-All the commands have a nice help message powered by [cobra] aswell, so you can just use `--help` at
-any point.
+    aenker docs man -d ~/.local/share/man/
+    man aenker-encrypt
 
 ### autocompletion
 
-Completion script generation is also powered by [cobra]. It's available for `bash` and `zsh`.
+Completion scripts for your shell can be generated and sourced with:
 
-    $ . <(aenker gen completion)
+     . <(aenker docs completion)
 
-or
+Or install the script globally with:
 
-    $ aenker gen completion | sudo tee /usr/share/bash-completion/completions/aenker
+    aenker docs completion | sudo tee /usr/share/bash-completion/completions/aenker
 
-## disclaimer
+### file detection
+
+Append this in your `~/.magic` file:
+
+    0 string aenker\xe7\x9e aenker encrypted file
+    !:mime application/x-aenker
+
+And `file` should detect encrypted files:
+
+    file message
+    message: aenker encrypted file
+    xxd message | head -2
+    00000000: 6165 6e6b 6572 e79e 42f7 5470 a191 973e  aenker..B.Tp...>
+    00000010: dd2e 86ab 501e 9eea 6819 7249 9169 4229  ....P...h.rI.iB)
+
+# disclaimer
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -138,8 +132,5 @@ or
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-Please be advised that I am not a professional cryptographer and I made no attempts to produce
-constant-time implementations, thus you should probably not use this code for any interactive or
-on-the-wire protocols.
-
-This is merely a hobby of mine which I hope can be useful to you.
+Please be advised that I am not a professional cryptographer. This is merely a hobby of mine which I
+hope can be useful to you.

@@ -1,152 +1,68 @@
 # aenker format specification
 
-## Common byte lengths
+![](assets/overview.png)
 
-Some commonly needed byte lengths:
+## file format
 
-| label    | bytes  | type     | description / where to find                                                                                 |
-| -------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------- |
-| key      | `32`   | `[]byte` | encryption key,<br> from `golang.org/x/crypto/chacha20poly1305.KeySize`                                     |
-| nonce    | `24`   | `[]byte` | extended nonce,<br> from `golang.org/x/crypto/chacha20poly1305.NonceSizeX`                                  |
-| overhead | `16`   | `[]byte` | added authentication tag after AEAD encryption, <br>`golang.org/x/crypto/chacha20poly1305.New().Overhead()` |
-| plain    | `var`  | `[]byte` | the length of the plaintext                                                                                 |
-| chunk    | `8192` | `[]byte` | the length of one (padded) plaintext chunk,<br>is variable and set during encryption                        |
-| sealed   | `8208` | `[]byte` | sealed ciphertext chunk, `chunk` + `overhead`                                                               |
+First of all, the on-disk format of a file encrypted with `aenker` looks like this:
 
-## Overview
+![](assets/on_disk.png)
 
-The data format at rest broadly looks like this:
+The first eight bytes are 'magic bytes' to recognize files encrypted with aenker. The bytes
+`\xe7\x9e` are the first two bytes of the Blake2b hash of the word 'aenker':
 
-| offset              | bytes    | type          | description                     |
-| ------------------- | -------- | ------------- | ------------------------------- |
-| `0`                 | `76`     | `MEKBlob`     | Nonce and sealed media key blob |
-| `76 + (i * sealed)` | `sealed` | `SealedChunk` | Sealed ciphertext chunk `i`     |
+    >>> hashlib.blake2b(b'aenker').digest()[:2]
+    b'\xe7\x9e'
 
-The total encrypted length calculates as:
+The salt is randomly generated and is used in conjunction with the private part of the stored
+ephemeral public key to derive the chunk encryption key.
 
-    76 + (plain / (chunk - 1)) * (chunk + 16)
+## input data chunking
 
-## Media Key Blob `MEKBlob`
+The incoming plaintext is split into equal parts of length `chunksize`. To be more precise, it is
+split into equal parts of length `chunksize-1` and is then [padded](padding/padding.go#L31) to the
+full `chunksize` length.
 
-Two different keys are used in aenker. There is a "key encryption key" `KEK` and a "media encryption
-key" `MEK`. The KEK is used to seal the MEK and is provided by the user. The MEK is generated
-randomly with every invocation. This is done so that a new unique key is used to encrypt the actual
-plaintext every time. Furthermore, the extended version of ChaCha20 is used during key encryption,
-so that even if the user provides the same key over and over again, random nonces can safely be
-used - the 12 bytes of the regular version would be too short in this case.
+Data is padded with either `\x00` or `\x01`, depending on the last byte of input data, and then a
+[marker byte](padding/padding.go#L16) is appended, which indicates whether this is a running chunk,
+a final chunk without padding or a final chunk with padding.
 
-The media key blob includes an encrypted media key, an extended nonce for the `XChaCha` cipher, the
-encoded chunksize chosen during encryption and the authentication tag.
+| padding byte | if ...                           |
+| ------------ | -------------------------------- |
+| `\x01`       | last data byte is `\x00`         |
+| `\x00`       | last data byte is **NOT** `\x00` |
 
-| offset | bytes | type     | description     |
-| ------ | ----- | -------- | --------------- |
-| `0`    | `24`  | `[]byte` | XChaCha Nonce   |
-| `24`   | `52`  | `[]byte` | Sealed MEK Blob |
+| final byte | chunk type                                 |
+| ---------- | ------------------------------------------ |
+| `\x00`     | running chunk, at least one more following |
+| `\x01`     | final chunk, no padding                    |
+| `\x02`     | final chunk, padding was added             |
 
-The MEK blob is unsealed in [`openMEK()`]. The string `Aenker Media Encryption Key` is used as
-associated data during AEAD operations on the MEK blob.
+In the `aenker` commandline tool the chunksize is fixed at `1984`. This results in exactly 2 kB
+ciphertext for small messages and padding and overhead losses approach < 1% for messages larger than
+1 MB.
 
-[`openmek()`]: Aenker/mediakey.go#L62
+![](assets/padding.png)
 
-### Unsealed MEK Blob
+## encryption
 
-| offset | bytes | type     | description                                             |
-| ------ | ----- | -------- | ------------------------------------------------------- |
-| `0`    | `32`  | `[]byte` | Media Encryption Key                                    |
-| `32`   | `4`   | `int`    | Chunksize, typecast `uint32`, [encoded] in LittleEndian |
+Each chunk is [encrypted][cipherer] with [ChaCha20Poly1305][chacha] using a derived key per message.
+Each chunk uses the same key, an incrementing nonce and the serialized file header as [associated
+data][info].
 
-[encoded]: Aenker/util.go#L52
+[chacha]: https://godoc.org/golang.org/x/crypto/chacha20poly1305
+[cipherer]: chunkstream/chunkcipherer.go#L59
+[info]: ae/aenker.go#L42
 
-## Chunks
+Naturally, the authentication tag adds some length to the encrypted data. You have to account for
+that during decryption when reading the chunks back.
 
-The incoming plaintext is split into equal parts of length `chunk`. To be more precise, it is split
-into equal parts of length `chunk - 1` and is then [padded] to the full `chunk` size.
+See the package [github.com/ansemjo/aenker/chunkstream](chunkstream/writer.go) if you want to use
+this chunked construction in your own application.
 
-[padded]: padding/padding.go#L34
+## nonce counter
 
-### Plaintext padding
-
-| offset                | bytes           | type                 | description                    |
-| --------------------- | --------------- | -------------------- | ------------------------------ |
-| `0`                   | `var`/`plain`   | `[]byte`             | plaintext data                 |
-| `chunk - padding - 1` | `var`/`padding` | `0x00`/`0x01`        | padding                        |
-| `chunk - 1`           | `1`             | `0x00`/`0x01`/`0x02` | chunk type / padding indicator |
-
-_Assume for this explanation a `chunk` size of `8`._
-
-Given the plaintext bytes:
-
-    67 e6 29 07 2e 2a af fc 5f aa 1e 97 4d aa d3 5d
-
-They are split into three equal parts of length `chunk - 1 = 7`:
-
-    67 e6 29 07 2e 2a af
-    fc 5f aa 1e 97 4d aa
-    d3 5d
-
-For a "running" chunk, i.e. one that is not at the very end of a sequence, a padding byte `0x00` is
-added. For a chunk that needs padding, `0x02` is appended at the _very end_.
-
-| chunk type        | last padding byte |
-| ----------------- | ----------------- |
-| running           | `0x00`            |
-| final, not padded | `0x01`            |
-| final, padded     | `0x02`            |
-
-So we get:
-
-    67 e6 29 07 2e 2a af 00
-    fc 5f aa 1e 97 4d aa 00
-    d3 5d ·· ·· ·· ·· ·· 02
-
-The rest of the bytes in the last chunk are filled with `0x00` if the last data byte is **NOT**
-`0x00`, otherwise they are filled with `0x01`:
-
-    67 e6 29 07 2e 2a af 00
-    fc 5f aa 1e 97 4d aa 00
-    d3 5d 00 00 00 00 00 02
-
-A different example:
-
-    a7 90 c1 1c 41 34 84 41 2d 0b de ca 00
-
-Becomes:
-
-    a7 90 c1 1c 41 34 84 00
-    41 2d 0b de ca 00 01 02
-
-#### A note on `chunk` size
-
-The more chunks you have, the more overhead you need to add through the authentication tags. You
-might want to raise the chunksize for larger files but keep in mind, that an entire chunk needs to
-fit into memory at once. The CLI thus limits the `chunk` size to 1 Gigabyte.
-
-If on the other hand you want to encrypt very small messages, know the message size in advance and
-do not care about hiding the size from an adversary you could set the `chunk` size to be the message
-size + one byte. That will result in a single chunk.
-
-### Chunk Encryption
-
-During chunk encryption, the regular ChaCha20Poly1305 variant is [used] with the media encryption
-key and an incrementing counter as the nonce. The string `Aenker Chunk` appended with the LE-encoded
-chunksize is used as [associated data]: i.e. `Aenker Chunk8192` with the default `chunk` size.
-
-[used]: Aenker/chunkstream.go#L44
-[associated data]: Aenker/chunkstream.go#L42
-
-#### Sealed Chunks
-
-Naturally, the sealed chunks are longer then the `chunk` size by exactly the amount of AEAD
-`overhead`.
-
-| offset  | bytes      | type     | description        |
-| ------- | ---------- | -------- | ------------------ |
-| `0`     | `chunk`    | `[]byte` | encrypted chunk    |
-| `chunk` | `overhead` | `[]byte` | authentication tag |
-
-#### Nonce Counter
-
-The implementation can be seen in [noncecounter.go](Aenker/noncecounter.go). Basically, it is a
+The implementation can be seen in [noncecounter.go](chunkstream/noncecounter.go). Basically, it is a
 simple 64-bit incrementing counter which is encoded in LittleEndian into a 12 byte buffer:
 
     00 00 00 00 00 00 00 00 00 00 00 00
@@ -155,5 +71,20 @@ simple 64-bit incrementing counter which is encoded in LittleEndian into a 12 by
     03 00 00 00 00 00 00 00 00 00 00 00
     ...
 
-The random media encryption keys ensure that the probability of a key-nonce reuse becomes
-negligible.
+Due to the use of this simple nonce construction, the nonce need not be saved seperately but it
+REQUIRES that a unique key is used for every message. Otherwise message integrity and
+confidentiality could be broken.
+
+## key derivation
+
+When encrypting to a recipient's public key, a random ephemeral private key is generated and
+anonymous Diffie-Hellman is performed. The encryption key is then [derived][kdf] from the resulting
+shared key with HKDF using unkeyed Blake2b-384, a random 8 byte salt and the info string
+`aenker elliptic`:
+
+[kdf]: keyderivation/keyderivation.go#L21
+
+![](assets/key_derivation_elliptic.png)
+
+The ephemeral public key is calculated and then stored in the header, together with the random 8
+byte salt.
