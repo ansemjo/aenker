@@ -16,7 +16,10 @@ include makerelease
 release:
 	git archive --prefix=./ HEAD | mkr rl
 
-
+# insert magic
+.PHONY: magic
+magic:
+	grep 'aenker\\xe7\\x9e' ~/.magic || cat magic >> ~/.magic
 
 PREFIX := $(shell [ $$(id -u) -eq 0 ] && echo /usr/local || echo ~/.local)
 INSTALLED := $(PREFIX)/bin/$(OUTPUT)

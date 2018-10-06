@@ -1,0 +1,3 @@
+# magic(5) description of aenker files for file(1)
+0 string aenker\xe7\x9e aenker encrypted file
+!:mime application/x-aenker
