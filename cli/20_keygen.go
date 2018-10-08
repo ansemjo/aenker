@@ -30,6 +30,7 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 	var public *cf.FileFlag
 
 	var password bool
+	var salt string
 
 	command := &cobra.Command{
 		Use:     "keygen",
@@ -68,7 +69,7 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 			if password {
 
 				// derive key from password
-				err = getpasskey(key, os.Stdin)
+				err = getpasskey(key, salt, os.Stdin)
 				fatal(err)
 
 			} else {
@@ -111,6 +112,7 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 
 	// add the password flag
 	command.Flags().BoolVar(&password, "password", false, "derive key from password")
+	command.Flags().StringVar(&salt, "salt", "aenker", "salt for password-based key derivation")
 
 	AddPubkeyCommand(command)
 	parent.AddCommand(command)

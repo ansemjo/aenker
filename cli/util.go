@@ -27,7 +27,7 @@ func fatal(err error) {
 }
 
 // read password and derive key
-func getpasskey(key *[32]byte, reader io.Reader) (err error) {
+func getpasskey(key *[32]byte, salt string, reader io.Reader) (err error) {
 
 	var passwd []byte
 
@@ -55,7 +55,7 @@ func getpasskey(key *[32]byte, reader io.Reader) (err error) {
 	}
 
 	// derive key
-	k := keyderivation.Password(passwd, "aenker")
+	k := keyderivation.Password(passwd, salt)
 	copy(key[:], k)
 
 	return
