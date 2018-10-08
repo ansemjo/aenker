@@ -26,8 +26,8 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 
 	command := &cobra.Command{
 
-		Use:     "decrypt",
-		Aliases: []string{"open", "d"},
+		Use:     "open",
+		Aliases: []string{"decrypt", "d"},
 		Short:   "decrypt a file",
 		Long:    "Decrypt from Stdin and write the plaintext to Stdout.",
 

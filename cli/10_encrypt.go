@@ -25,8 +25,8 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 
 	command := &cobra.Command{
 
-		Use:     "encrypt",
-		Aliases: []string{"seal", "e"},
+		Use:     "seal",
+		Aliases: []string{"encrypt", "e"},
 		Short:   "encrypt a file",
 		Long:    "Encrypt Stdin and write the ciphertext to Stdout.",
 
