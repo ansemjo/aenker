@@ -34,17 +34,17 @@ $(INSTALLED) : $(OUTPUT)
 docs : docs/$(OUTPUT).md
 docs/$(OUTPUT).md : $(OUTPUT)
 	mkdir -p docs
-	./$< gen manual -d docs man
-	./$< gen manual -d docs markdown
+	./$< docs manual -d docs man
+	./$< docs manual -d docs markdown
 
 # generate manuals
 manuals : $(MANUALS)/man1/$(OUTPUT).1
 $(MANUALS)/man1/$(OUTPUT).1 : $(OUTPUT)
-	./$< gen manual -d $(MANUALS)
+	./$< docs manual -d $(MANUALS)
 	@echo "# add this to your ~/.bashrc:"
-	@echo ". <($< gen completion)"
+	@echo ". <($< docs completion)"
 	@echo "# or add global bash completions:"
-	@echo "$< gen completion > /usr/share/bash-completion/completions/$<"
+	@echo "$< docs completion > /usr/share/bash-completion/completions/$<"
 
 # clean untracked files and directories
 clean :
