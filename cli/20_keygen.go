@@ -29,6 +29,8 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 	var private *cf.FileFlag
 	var public *cf.FileFlag
 
+	var password bool
+
 	command := &cobra.Command{
 		Use:     "keygen",
 		Aliases: []string{"kg"},
@@ -62,10 +64,20 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 				}
 			}()
 
-			// generate a new key
 			key := new([32]byte)
-			_, err = io.ReadFull(rand.Reader, key[:])
-			fatal(err)
+			if password {
+
+				// derive key from password
+				err = getpasskey(key, os.Stdin)
+				fatal(err)
+
+			} else {
+
+				// generate new random key
+				_, err = io.ReadFull(rand.Reader, key[:])
+				fatal(err)
+
+			}
 
 			// write encoded key to file
 			if private.File == os.Stdout {
@@ -96,6 +108,9 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 
 	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)",
 		cf.Exclusive(0644), os.Stdout)
+
+	// add the password flag
+	command.Flags().BoolVar(&password, "password", false, "derive key from password")
 
 	AddPubkeyCommand(command)
 	parent.AddCommand(command)
