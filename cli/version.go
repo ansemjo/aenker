@@ -8,7 +8,7 @@ import "strings"
 // Version information. The Format: string will be replaced when downloaded as a git archive.
 // It is assembled in SpecificVersion().
 const (
-	Version = "0.4"
+	Version = "0.5"
 	Commit  = "$Format:%h$"
 )
 

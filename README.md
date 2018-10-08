@@ -9,6 +9,9 @@ with [HKDF][4] using [Blake2b][5] after performing anonymous Diffie-Hellman with
 a random ephemeral private key. All this is further described in the
 [specification](SPECIFICATION.md).
 
+There is a small [decryption script](assets/decrypt.py) written in Python. It should provide an
+easily readable overview of the inner workings.
+
 [0]: https://cr.yp.to/ecdh.html
 [1]: https://tools.ietf.org/html/rfc7539
 [2]: https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme
