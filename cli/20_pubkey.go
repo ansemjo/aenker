@@ -25,6 +25,8 @@ func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 		Aliases: []string{"pk"},
 		Short:   "calculate public key",
 		Long:    "Calculate the public key of a Curve25519 private key.",
+		Example: "head -c32 /dev/urandom | base64 > secretkey\naenker kg pubkey < secretkey > publickey",
+
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return cf.CheckAll(cmd, args, public.Open, private.Check)
 		},

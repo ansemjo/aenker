@@ -36,7 +36,8 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 		Use:     "keygen",
 		Aliases: []string{"kg"},
 		Short:   "generate a new keypair",
-		Long:    "Generate and save a new Curve25519 keypair.",
+		Long:    "Generate and save a new keypair.",
+		Example: "aenker kg --password --salt mysalt -p publickey -o /dev/null",
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// output file

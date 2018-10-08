@@ -4,10 +4,16 @@ decrypt a file
 
 ### Synopsis
 
-Decrypt from Stdin and write the plaintext to Stdout.
+Decrypt a file and output authenticated plaintext.
 
 ```
 aenker open [flags]
+```
+
+### Examples
+
+```
+aenker open -i archive.tar.gz.ae -p -s mysalt | tar xz
 ```
 
 ### Options

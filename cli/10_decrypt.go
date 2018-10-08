@@ -29,7 +29,8 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 		Use:     "open",
 		Aliases: []string{"decrypt", "d"},
 		Short:   "decrypt a file",
-		Long:    "Decrypt from Stdin and write the plaintext to Stdout.",
+		Long:    "Decrypt a file and output authenticated plaintext.",
+		Example: "aenker open -i archive.tar.gz.ae -p -s mysalt | tar xz",
 
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 

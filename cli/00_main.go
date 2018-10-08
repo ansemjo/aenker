@@ -13,9 +13,13 @@ import (
 // RootCommand is the root cobra command to be executed with Execute().
 var RootCommand = &cobra.Command{
 	Use: "aenker",
-	Long: `aenker is a tool to encrypt files with an authenticated
-cipher (ChaCha20Poly1305) in a 'streamable' way by chunking
-the input into equally-sized parts.`,
+	Long: `Aenker is a tool to encrypt files with an authenticated integrated encryption
+scheme by chunking the input into equal parts and sealing them with a key
+derived from an anonymous Diffie-Hellman key exchange on an elliptic curve.
+
+Many parties can encrypt files for a single recipient by distributing that
+recipient's public key, while only the recipient can decrypt any of those files
+afterwards.`,
 	Version: SpecificVersion(),
 }
 

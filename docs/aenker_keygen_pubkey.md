@@ -10,6 +10,13 @@ Calculate the public key of a Curve25519 private key.
 aenker keygen pubkey [flags]
 ```
 
+### Examples
+
+```
+head -c32 /dev/urandom | base64 > secretkey
+aenker kg pubkey < secretkey > publickey
+```
+
 ### Options
 
 ```

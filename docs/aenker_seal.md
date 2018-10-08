@@ -4,10 +4,16 @@ encrypt a file
 
 ### Synopsis
 
-Encrypt Stdin and write the ciphertext to Stdout.
+Encrypt a file and output ciphertext with authentication tags.
 
 ```
 aenker seal [flags]
+```
+
+### Examples
+
+```
+tar cz * | aenker seal -p publickey -o archive.tar.gz.ae
 ```
 
 ### Options

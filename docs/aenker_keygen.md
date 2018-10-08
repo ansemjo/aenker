@@ -4,10 +4,16 @@ generate a new keypair
 
 ### Synopsis
 
-Generate and save a new Curve25519 keypair.
+Generate and save a new keypair.
 
 ```
 aenker keygen [flags]
+```
+
+### Examples
+
+```
+aenker kg --password --salt mysalt -p publickey -o /dev/null
 ```
 
 ### Options
