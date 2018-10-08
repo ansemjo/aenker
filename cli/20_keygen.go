@@ -105,10 +105,10 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 
 	// add the output file flags
 	private = cf.AddFileFlag(command, "out", "o", "write output to file (default: stdout)",
-		cf.Exclusive(0600), os.Stdout)
+		cf.Truncate(0600), os.Stdout)
 
 	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)",
-		cf.Exclusive(0644), os.Stdout)
+		cf.Truncate(0644), os.Stdout)
 
 	// add the password flag
 	command.Flags().BoolVar(&password, "password", false, "derive key from password")
