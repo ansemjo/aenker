@@ -13,8 +13,8 @@ import (
 
 // Hash is the hash function used in HKDF. If you want a different one assign it before
 // calling HKDF or any function that uses it. I.e.:
-//  keyderivation.Hash = sha512.New384
-var Hash func() hash.Hash = Blake2b384
+//  keyderivation.Hash = sha512.New
+var Hash func() hash.Hash = Blake2b512
 
 // HKDF wraps crypto/hkdf to generate a single 32 byte key with the Hash defined at package level.
 func HKDF(secret, salt []byte, info string) (key []byte) {
