@@ -57,23 +57,27 @@ This is not safe for various reasons, so avoid using it for your private key.
 ### advanced key generation
 
 Generally, Curve25519 - and thus aenker - accepts any 32 byte value as a key. You could generate a
-private key by other means and then only calculate the public key to distribute it.
-
-Just read from system randomness:
+private key by other means and then only calculate the public key to distribute it. You might just
+read from system randomness:
 
     head -c32 /dev/urandom | base64 > privatekey
     aenker keygen pubkey -k privatekey > publickey
 
-Or use a key derivation function like Argon2 with
+You could use a single private key and pass the `--symmetric` flag when encrypting. This will derive
+the public key internally and proceed as usual but you will use the same key for decryption, which
+effectively turns this into a symmetric encryption.
+
+Or you could pass `--password` and use a password-based key derivation function compatible with
 [ansemjo/stdkdf](https://github.com/ansemjo/stdkdf):
 
-    stdkdf -salt aenker | aenker kg pk > publickey
-    ... | aenker seal -p publickey > ciphertext
-    aenker open -i ciphertext -k $(stdkdf -salt aenker) | ...
+    stdkdf -salt aenker -cost hard | aenker kg pk > publickey
+    aenker seal -p publickey -i message -o message.ae
+    aenker open -i message.ae --password
 
-You can even use a single private key and pass the `--symmetric` flag when encrypting. This will
-derive the public key internally and proceed as usual but you will use the same key for decryption,
-which effectively turns this into a symmetric encryption.
+Generate a password-based public key like above for distribution (both yield the same key):
+
+    aenker keygen --password --salt mysalt
+    stdkdf -salt mysalt -cost hard | curvekey pub
 
 ## installation
 
