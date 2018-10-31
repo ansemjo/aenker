@@ -7,10 +7,8 @@ import "strings"
 
 // Version information. The Format: string will be replaced when downloaded as a git archive.
 // It is assembled in SpecificVersion().
-const (
-	Version = "0.5"
-	Commit  = "$Format:%h$"
-)
+var Version = "0.5"
+var Commit = "$Format:%H$"
 
 // SpecificVersion returns the most specific version available: either '$Version (development)'
 // or '$Version (commit $Commit)' - depending on whether Commit was replaced by git upon archive
@@ -19,5 +17,5 @@ func SpecificVersion() string {
 	if strings.Contains(Commit, "Format:") {
 		return Version + " (development)"
 	}
-	return Version + " (commit " + Commit + ")"
+	return Version + " (commit: " + Commit + ")"
 }

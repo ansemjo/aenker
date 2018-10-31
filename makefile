@@ -6,9 +6,11 @@
 # compile statically linked binary
 .PHONY: build
 OUTPUT := aenker
+MODULE := github.com/ansemjo/aenker
 build : $(OUTPUT)
 $(OUTPUT) : $(shell find * -type f -name '*.go') go.mod go.sum
-	CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -ldflags '-s -w' -o $(OUTPUT)
+	CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -o $(OUTPUT) -ldflags '-s -w' \
+		-ldflags '-X $(MODULE)/cli.Commit=$(shell sh version.sh commit) -X $(MODULE)/cli.Version=$(shell sh version.sh version)'
 
 # makerelease targets for reproducible builds, ansemjo/makerelease
 .PHONY : mkrelease-prepare mkrelease mkrelease-finish
