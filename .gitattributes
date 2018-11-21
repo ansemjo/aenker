@@ -1,3 +1,2 @@
 # replace Format: string upon archive creation
-cli/version.go export-subst
 version.sh export-subst

@@ -3,32 +3,23 @@
 
 # ---------- build ----------
 
-# compile statically linked binary
+NAME    := aenker
+VERSION := $(shell sh version.sh describe)
+
+# env and flags to build static binary with embedded version
+GO_BUILD_ENV   := CGO_ENABLED=0
+GO_BUILD_FLAGS := -ldflags='-s -w -X main.Version=$(VERSION)'
+
+# build binary for host system
 .PHONY: build
-OUTPUT := aenker
-MODULE := github.com/ansemjo/aenker
-build : $(OUTPUT)
-$(OUTPUT) : $(shell find * -type f -name '*.go') go.mod go.sum
-	CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) go build -o $(OUTPUT) -ldflags '-s -w' \
-		-ldflags '-X $(MODULE)/cli.Commit=$(shell sh version.sh commit) -X $(MODULE)/cli.Version=$(shell sh version.sh version)'
+build : $(NAME)
+$(NAME) : $(shell find * -type f -name '*.go') go.mod go.sum
+	env $(GO_BUILD_ENV) go build $(GO_BUILD_FLAGS) -o $@
 
-# makerelease targets for reproducible builds, ansemjo/makerelease
-.PHONY : mkrelease-prepare mkrelease mkrelease-finish
-mkrelease-prepare :
-	go mod download
-
-EXT := $(if $(findstring windows,$(OS)),.exe)
-mkrelease :
-	OUTPUT=$(RELEASEDIR)/$(OUTPUT)-$(OS)-$(ARCH)$(EXT) make --no-print-directory build
-
-mkrelease-finish :
-	upx -q $$(find $(RELEASEDIR)/* ! -name '*bsd-a*')
-	printf "# built with %s in %s\n" "$$MKR_VERSION" "$$MKR_IMAGE" > $(RELEASEDIR)/SHA256SUMS
-	cd $(RELEASEDIR) && sha256sum $(OUTPUT)-*-* | tee -a SHA256SUMS
-
-# make a release / cross-compile with mkr
-release:
-	git archive --prefix=./ HEAD | mkr rl $(MKRARGS)
+# cross-compile binaries with gox
+.PHONY: release
+release :
+	env $(GO_BUILD_ENV) gox $(GO_BUILD_FLAGS) -output='$@/$(NAME)-{{.OS}}-{{.Arch}}'
 
 # ---------- install ----------
 
@@ -42,45 +33,48 @@ COMPLETION_DIR := $(DESTDIR)$(PREFIX)/share/bash-completion/completions
 # install binary and manuals
 .PHONY: install
 install : \
-	$(BINARY_DIR)/$(OUTPUT) \
-	$(MANUAL_DIR)/man1/$(OUTPUT).1 \
-	$(COMPLETION_DIR)/$(OUTPUT)
+	$(BINARY_DIR)/$(NAME) \
+	$(MANUAL_DIR)/man1/$(NAME).1 \
+	$(COMPLETION_DIR)/$(NAME)
 
-$(BINARY_DIR)/$(OUTPUT) : $(OUTPUT)
+$(BINARY_DIR)/$(NAME) : $(NAME)
 	install -m 755 -D $< $@
 
-$(MANUAL_DIR)/man1/$(OUTPUT).1 : $(OUTPUT)
+$(MANUAL_DIR)/man1/$(NAME).1 : $(NAME)
 	install -m 755 -d $(MANUAL_DIR)
 	./$< docs manual man -d $(MANUAL_DIR)
 
-$(COMPLETION_DIR)/$(OUTPUT) : $(OUTPUT)
+$(COMPLETION_DIR)/$(NAME) : $(NAME)
 	install -m 755 -d $(COMPLETION_DIR)
 	./$< docs completion bash -o $@
 
 # ---------- packaging ----------
 
 # package metadata
-PKGNAME     := aenker
-PKGVERSION  := $(shell sh version.sh describe | sed s/-/./ )
+PKGNAME     := $(NAME)
+PKGVERSION  := $(shell echo $(VERSION) | sed s/-/./ )
 PKGAUTHOR   := 'ansemjo <anton@semjonov.de'
 PKGLICENSE  := MIT
 PKGURL      := https://github.com/ansemjo/$(PKGNAME)
-PKGFORMATS  := rpm deb apk pacman
-PACKAGEDIR  := package
+PKGFORMATS  := rpm deb apk
+PKGARCH     := $(shell uname -m)
 
 # how to execute fpm
-FPM = podman run --rm --net none -v $$PWD:/build -w /build ansemjo/fpm:alpine
+FPM = podman run --rm --net none -v $$PWD:/src -w /src ansemjo/fpm:alpine
 
 # build a package
 .PHONY: package-%
 package-% :
-	make --no-print-directory install DESTDIR=$(PACKAGEDIR)
-	$(FPM) -s dir -t $* -f --chdir $(PACKAGEDIR) \
+	make --no-print-directory install DESTDIR=package
+	mkdir -p release
+	$(FPM) -s dir -t $* -f --chdir package \
 		--name $(PKGNAME) \
 		--version $(PKGVERSION) \
 		--maintainer $(PKGAUTHOR) \
 		--license $(PKGLICENSE) \
-		--url $(PKGURL)
+		--url $(PKGURL) \
+		--architecture $(PKGARCH) \
+		--package release/$(PKGNAME)-$(PKGVERSION)-$(PKGARCH).$*
 
 # build all package formats with fpm
 .PHONY: packages
@@ -89,7 +83,7 @@ packages : $(addprefix package-,$(PKGFORMATS))
 # ---------- misc ----------
 
 # generate local docs
-docs : $(OUTPUT)
+docs : $(NAME)
 	mkdir -p $@
 	./$< docs manual -d $@ markdown
 

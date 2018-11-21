@@ -1,12 +1,12 @@
+# go dependencies, config, misc ..
 vendor/
+.vscode/
+
+# all but markdown documents
 docs/*
 !docs/*.md
+
+# compiled / built files
 aenker
 release/
-.vscode/
-debug/
 package/
-*.rpm
-*.deb
-*.apk
-*.pkg.tar.*

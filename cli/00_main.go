@@ -20,7 +20,6 @@ derived from an anonymous Diffie-Hellman key exchange on an elliptic curve.
 Many parties can encrypt files for a single recipient by distributing that
 recipient's public key, while only the recipient can decrypt any of those files
 afterwards.`,
-	Version: SpecificVersion(),
 }
 
 // Initialize cobra commander, disable sorting and
