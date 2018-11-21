@@ -3,7 +3,11 @@ go:
   - 1.11.x
   - master
 
+dist: xenial
 sudo: no
+services:
+  - docker
+
 git:
   depth: no
 
@@ -15,8 +19,10 @@ install:
   - go mod download
 
 before_script:
+  - git fetch --unshallow
   - git tag
-  - git describe --always --long
+  - sh version.sh
+
 
 script:
   - make test
