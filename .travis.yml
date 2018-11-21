@@ -20,8 +20,10 @@ install:
   - docker pull ansemjo/fpm:alpine
 
 before_script:
+  - git tag -v 0.3.6
+  - git tag -v 0.4.0
+  - curl -L https://keybase.io/ansemjo/pgp_keys.asc | gpg --import
   - git tag -n
-  - git log --graph --all
   - sh version.sh
 
 script:
