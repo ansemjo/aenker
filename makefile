@@ -65,7 +65,8 @@ PKGFORMATS  := rpm deb apk
 PKGARCH     := $(shell uname -m)
 
 # how to execute fpm
-FPM = podman run --rm --net none -v $$PWD:/src -w /src ansemjo/fpm:alpine
+DOCKER_BIN := podman
+FPM := $(DOCKER_BIN) run --rm --net none -v $$PWD:/src -w /src ansemjo/fpm:alpine
 
 # build a package
 .PHONY: package-%

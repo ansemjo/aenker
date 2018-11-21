@@ -4,15 +4,22 @@ go:
   - master
 
 sudo: no
+git:
+  depth: no
 
 env:
   - GO111MODULE=on
 
-before_script:
+install:
   - env GO111MODULE=off go get github.com/mitchellh/gox
   - go mod download
+
+before_script:
+  - git tag
+  - git describe --always --long
 
 script:
   - make test
   - make build
   - make release
+  - make packages DOCKER_BIN=docker
