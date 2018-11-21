@@ -33,7 +33,6 @@ const ErrSize = "must have at least one byte free"
 //
 //! WARNING: not constant time, might open up side-channels
 func Add(slice *[]byte, final bool, capacity int) (err error) {
-	// TODO: should probably return error instead of panicking
 
 	length := len(*slice)
 	free := capacity - length
@@ -85,7 +84,7 @@ func Add(slice *[]byte, final bool, capacity int) (err error) {
 //
 // When used with authenticated encryption this might not even be necessary anyway.
 func Remove(chunk *[]byte) (final bool) {
-	// TODO: should probably return error instead of panicking
+	// TODO: not currently checking if chunktype and padbyte are valid at all
 
 	length := len(*chunk)        // get length of chunk
 	marker := (*chunk)[length-1] // get last byte, indicating the type

@@ -34,12 +34,12 @@ func TestAdd(t *testing.T) {
 		to := slice(tc.to, tc.cap)
 		err := Add(&from, tc.final, tc.cap)
 		if err != nil {
-			t.Errorf("pos[%d] Unexpected error: %s", i, err.Error())
+			t.Errorf("positive[%d] Unexpected error: %s", i, err.Error())
 			continue
 		}
 		ok := bytes.Compare(from, to)
 		if ok != 0 {
-			t.Errorf("pos[%d] Padding '%x' did not yield the expected result.", i, tc.from)
+			t.Errorf("positive[%d] Padding '%+q' did not yield the expected result.", i, tc.from)
 			continue
 		}
 	}
@@ -58,12 +58,42 @@ func TestAdd(t *testing.T) {
 	for i, tc := range negative {
 		err := Add(&tc.slice, tc.final, cap(tc.slice))
 		if err == nil {
-			t.Errorf("neg[%d] Unexpected success?!", i)
+			t.Errorf("negative[%d] Unexpected success?!", i)
 			continue
 		}
 		if err.Error() != tc.err {
-			t.Errorf("neg[%d] Unexpected error: %s", i, err.Error())
+			t.Errorf("negative[%d] Unexpected error: %s", i, err.Error())
 			continue
+		}
+	}
+
+}
+
+func TestRemove(t *testing.T) {
+
+	table := []struct {
+		unpadded, padded string
+		final            bool
+	}{
+		{"Hello, World!", "Hello, World!\x00\x00" + string(Padded), true},
+		{"\x00\x00\x00", "\x00\x00\x00" + string(Running), false},
+		{"nil\x00", "nil\x00\x01" + string(Padded), true},
+		{"nil\x00", "nil\x00" + string(Running), false},
+		{"nil\x00", "nil\x00" + string(Unpadded), true},
+		{"unkno", "unknown", true},
+		{"unknown", "unknown" + string(Running), false},
+		{"unknow", "unknownnnnn" + string(Padded), true},
+		{"unknown", "unknown" + string(Unpadded), true},
+	}
+
+	for i, tc := range table {
+		padded := []byte(tc.padded)
+		final := Remove(&padded)
+		if final != tc.final {
+			t.Errorf("table[%d] unexpected final status: %v", i, final)
+		}
+		if ok := bytes.Compare(padded, []byte(tc.unpadded)); ok != 0 {
+			t.Errorf("table[%d] wrong unpadding result: %+q", i, padded)
 		}
 	}
 
