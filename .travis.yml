@@ -1,15 +1,12 @@
 language: go
 go:
   - 1.11.x
-    #- master
+  - master
 
 dist: xenial
 sudo: no
 services:
   - docker
-
-git:
-  depth: no
 
 env:
   - GO111MODULE=on
@@ -17,17 +14,21 @@ env:
 install:
   - env GO111MODULE=off go get github.com/mitchellh/gox
   - go mod download
-    #- docker pull ansemjo/fpm:alpine
-
-before_script:
-  - curl -L 'https://pgp.mit.edu/pks/lookup?op=get&search=0x21211F2AE74DE762' | gpg --import
-  - curl -L https://keybase.io/ansemjo/pgp_keys.asc | gpg --import
-  - git tag -v 0.4.0 || true
-  - git tag -n
-  - sh version.sh
+  - docker pull ansemjo/fpm:alpine
 
 script:
   - make test
   - make build
   - make release
   - make packages DOCKER_BIN=docker
+
+deploy:
+  provider: releases
+  api_key:
+    secure: o6wR0d27rvtPe0p/x820Pt667FZjYy+Q8YIwjw9S+bnlKGXO7mBY3UwtQFi0EQ047eZ8Ud9HByUMzLH75CFubyARyRhTMwMDeSIZ0KJTMPuoRF4QK7lutU/118KlkAYrneCKE3igH/ACzuhg+HUaI+7UvpNwnpTXRR8OD+Ngi5x/uP3Vd0vxQOeMYhf6u5s9xj+4MLVkOoaq/EiZqzS6bxVjs3nvTGCFDSdgJjZClbFf79wpsFUTUb/Y0nfuEn/8XpM/aBBpnd5j2u4bQ/gY2V7ztv75SNgQI3g9Y+QMayaab8yBDmUae7LX8LpJFOQlx26fD+mw/nJaanOAtgtMG6fdBbrfHDrCO0pXJ8sDtlpFkZoBC1bXbVqX6GoIzNm0MdgxXzjIhrkchw9171Nbf1d3VOOST4uocMGB+IjfWeVCv2gPppY1+CtGDCG1VlukfhGB8iyr86pos9/+nVf9MouWebxoZddCrgjv0H1QmcDLPaiYoc/pRTCqL3LliyoYqaoit/RmoObc8fpWhtEdfxssy3kmJ33BKK571Cw26q/25/DOiYeRZDF0TRqu6ctqBpdzeTLGMU7qLRB9fQoGSKSDVeD/zr15mdDrHoG8yiHmQKbrwn5BCrKh/SkUX1eLV7yMLyAWXoDbcRiuUA+CVQXQ49DoPyKaF1wCL8stESk=
+  file: release/*
+  file_glob: yes
+  skip_cleanup: yes
+  on:
+    repo: ansemjo/aenker
+    tags: yes
