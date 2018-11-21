@@ -17,12 +17,12 @@ env:
 install:
   - env GO111MODULE=off go get github.com/mitchellh/gox
   - go mod download
+  - docker pull ansemjo/fpm:alpine
 
 before_script:
-  - git fetch --unshallow
-  - git tag
+  - git tag -n
+  - git log --graph --all
   - sh version.sh
-
 
 script:
   - make test
