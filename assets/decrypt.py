@@ -62,15 +62,14 @@ class chunkreader:
     # remove padding from plaintext
     def removepadding(self, chunk):
         typ, chunk = chunk[-1:], chunk[:-1]
-        if typ is b"\x00":
+        if typ == b"\x00":
             return chunk, False  # running chunk
-        elif typ is b"\x01":
+        elif typ == b"\x01":
             return chunk, True  # final chunk, no padding
-        elif typ is b"\x02":
+        elif typ == b"\x02":
             pad = chunk[-1]  # final chunk, with padding
             return chunk.rstrip(bytes([pad])), True
-        else:
-            raise ValueError("unknown padding type: " + typ)
+        raise ValueError("unknown padding type: " + typ)
 
     # decrypt and write to writer until there is no more
     def decrypt(self, writer):
@@ -101,4 +100,3 @@ def cli():
 
 if __name__ == "__main__":
     cli()
-
