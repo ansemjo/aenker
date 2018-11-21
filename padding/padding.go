@@ -6,6 +6,7 @@ package padding
 
 import (
 	"crypto/subtle"
+	"errors"
 )
 
 // chunktype signals what type of padding
@@ -19,6 +20,9 @@ const (
 	Padded   chunktype = '\x02' // a final chunk that requires padding
 )
 
+const ErrOneByte = "must have exactly one byte free"
+const ErrSize = "must have at least one byte free"
+
 // Add appends one or more padding bytes at the end of the slice, depending on whether it is
 // a running or a final chunk from a given sequence. If padding is needed, the following rules apply:
 //  the last data byte is NOT \x00 --> pad with \x00 bytes
@@ -28,7 +32,7 @@ const (
 // See https://rwc.iacr.org/2018/Slides/Hansen.pdf, page 10 for details.
 //
 //! WARNING: not constant time, might open up side-channels
-func Add(slice *[]byte, final bool, capacity int) {
+func Add(slice *[]byte, final bool, capacity int) (err error) {
 	// TODO: should probably return error instead of panicking
 
 	length := len(*slice)
@@ -37,7 +41,7 @@ func Add(slice *[]byte, final bool, capacity int) {
 	if !final { // if we are not a final slice ...
 
 		if free != 1 { // check that there is space for exactly one byte
-			panic("must have exactly one byte free")
+			return errors.New(ErrOneByte)
 		}
 
 		*slice = append(*slice, byte(Running)) // append running chunk marker
@@ -45,7 +49,7 @@ func Add(slice *[]byte, final bool, capacity int) {
 	} else {
 
 		if !(free >= 1) { // check that there is space for AT LEAST one byte
-			panic("must have at least one byte free")
+			return errors.New(ErrSize)
 		}
 
 		var pad byte                    // decide which byte to use for padding
