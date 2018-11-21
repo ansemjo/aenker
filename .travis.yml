@@ -20,9 +20,10 @@ install:
   - docker pull ansemjo/fpm:alpine
 
 before_script:
+  - gpg --recv-keys 76460DAD1734ABF824E30ACF21211F2AE74DE762
+  - curl -L https://keybase.io/ansemjo/pgp_keys.asc | gpg --import
   - git tag -v 0.3.6
   - git tag -v 0.4.0
-  - curl -L https://keybase.io/ansemjo/pgp_keys.asc | gpg --import
   - git tag -n
   - sh version.sh
 
