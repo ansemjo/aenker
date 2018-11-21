@@ -21,6 +21,11 @@ $(NAME) : $(shell find * -type f -name '*.go') go.mod go.sum
 release :
 	env $(GO_BUILD_ENV) gox $(GO_BUILD_FLAGS) -output='$@/$(NAME)-{{.OS}}-{{.Arch}}'
 
+# run tests verbosely
+.PHONY: test
+test :
+	go test ./... -timeout 30s -cover -v
+
 # ---------- install ----------
 
 # installation directories
