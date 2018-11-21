@@ -22,8 +22,7 @@ install:
 before_script:
   - curl -L 'https://pgp.mit.edu/pks/lookup?op=get&search=0x21211F2AE74DE762' | gpg --import
   - curl -L https://keybase.io/ansemjo/pgp_keys.asc | gpg --import
-  - git tag -v 0.3.6
-  - git tag -v 0.4.0
+  - git tag -v 0.4.0 || true
   - git tag -n
   - sh version.sh
 
