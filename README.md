@@ -84,15 +84,22 @@ Generate a password-based public key like above for distribution (both yield the
 
 ## installation
 
-You can install from `master` with `go` (make sure `$GOPATH/bin/` is in your `$PATH`):
+### install directly with `go`:
 
     go get -u github.com/ansemjo/aenker
-    aenker --help
 
-Or download a [release](https://github.com/ansemjo/aenker/releases) from GitHub and place it
-somewhere in your `$PATH`.
+### install from tarball / clone:
 
-### documentation
+You can use the makefile to build a static binary and embed proper version information:
+
+    make aenker
+    sudo make install
+
+### install a package / release
+
+Or [download a release](https://github.com/ansemjo/aenker/releases) from GitHub.
+
+## documentation
 
 All of the commands output a nicely formatted help message, so you can use `--help` at any time:
 
