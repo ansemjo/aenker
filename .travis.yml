@@ -1,0 +1,18 @@
+language: go
+go:
+  - 1.11.x
+  - master
+
+sudo: no
+
+env:
+  - GO111MODULE=on
+
+before_script:
+  - env GO111MODULE=off go get github.com/mitchellh/gox
+  - go mod download
+
+script:
+  - make test
+  - make build
+  - make release
