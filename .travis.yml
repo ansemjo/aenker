@@ -15,6 +15,7 @@ install:
   - env GO111MODULE=off go get github.com/mitchellh/gox
   - go mod download
   - docker pull ansemjo/fpm:alpine
+  - sh version.sh
 
 script:
   - make test
@@ -32,3 +33,4 @@ deploy:
   on:
     repo: ansemjo/aenker
     tags: yes
+    condition: $TRAVIS_GO_VERSION =~ ^1\.11
