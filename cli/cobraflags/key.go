@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 
@@ -36,7 +37,8 @@ func AddKey32Flag(cmd *cobra.Command, flag, short, usage string, fallback *os.Fi
 
 				} else {
 					// assume any other string to be a filename
-					file, err := os.Open(*str)
+					var file *os.File
+					file, err = os.Open(*str)
 					if err != nil {
 						return err
 					}
@@ -80,10 +82,22 @@ func decodeKey(str string) (key *[32]byte, err error) {
 
 // decodeKeyFile reads a file and decodes its contents with decodeKey
 func decodeKeyFile(file *os.File) (key *[32]byte, err error) {
-	buf := bufio.NewReader(file)
-	line, _, err := buf.ReadLine()
-	if err != nil {
-		return
+
+	// use a line scanner
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		// test each line for key regexp
+		if line := scanner.Text(); is32ByteBase64Encoded(line) {
+			return decodeKey(line)
+		}
 	}
-	return decodeKey(string(line))
+
+	// return any errors encountered
+	if e := scanner.Err(); e != nil {
+		return nil, e
+	}
+
+	// probably hit EOF
+	return nil, fmt.Errorf("no base64 encoded key found in %s", file.Name())
+
 }
