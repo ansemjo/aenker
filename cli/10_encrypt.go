@@ -25,8 +25,8 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 		Use:     "seal",
 		Aliases: []string{"encrypt", "e"},
 		Short:   "encrypt a file",
-		Long:    "Encrypt a file and output ciphertext with authentication tags.",
-		Example: "tar cz * | aenker seal -p publickey -o archive.tar.gz.ae",
+		Long:    "Encrypt a file for a recipient's public key and output authenticated ciphertext.",
+		Example: "  tar cz * | aenker seal -p publickey > archive.tar.gz.ae",
 
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return cf.CheckAll(cmd, args, key.Check, input.Open, output.Open)

@@ -23,9 +23,10 @@ func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "pubkey",
 		Aliases: []string{"pk"},
-		Short:   "derive public key",
-		Long:    "Calculate the public key of a Curve25519 private key.",
-		Example: "head -c32 /dev/urandom | base64 > secretkey\naenker kg pubkey < secretkey > publickey",
+		Short:   "derive public key from secret key",
+		Long: `Calculate the public key of a Curve25519 private key by performing a base point
+multiplication. You could use any source of 32 random bytes as input.`,
+		Example: "  head -c32 /dev/urandom | base64 > mykey\n  aenker kg pk -k mykey > mykey.pub",
 
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return cf.CheckAll(cmd, args, public.Open, private.Check)

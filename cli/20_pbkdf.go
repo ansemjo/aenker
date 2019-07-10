@@ -30,10 +30,11 @@ func init() {
 		var salt string
 
 		command := &cobra.Command{
-			Use:     "pbkdf",
-			Short:   "generate a password-derived keypair",
-			Long:    "Generate and save a new keypair by deriving it from a password with argon2i.",
-			Example: "aenker kg pbkdf --salt mysalt -p publickey -o /dev/null",
+			Use:   "pbkdf",
+			Short: "generate a password-derived keypair",
+			Long: `Generate and save a new Curve25519 keypair by deriving it from a password with
+Argon2i. The cost settings are predefined as time=32, memory=256MB, threads=4.`,
+			Example: "  aenker kg pbkdf -s mysaltstring -o mykey -p mykey.pub",
 			PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
 				// output file
@@ -98,7 +99,7 @@ func init() {
 			cf.Truncate(0644), os.Stdout)
 
 		// add the salt flag
-		command.Flags().StringVarP(&salt, "salt", "s", "aenker", "salt for password-based key derivation")
+		command.Flags().StringVarP(&salt, "salt", "s", "aenker", "salt for argon2i key derivation")
 
 		parent.AddCommand(command)
 		return command

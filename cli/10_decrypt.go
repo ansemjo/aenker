@@ -26,7 +26,7 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 		Aliases: []string{"decrypt", "d"},
 		Short:   "decrypt a file",
 		Long:    "Decrypt a file and output authenticated plaintext.",
-		Example: "aenker open -i archive.tar.gz.ae -k ~/.aenker | tar xz",
+		Example: "  aenker open -k ~/.aenker -i archive.tar.gz.ae | tar xz",
 
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 

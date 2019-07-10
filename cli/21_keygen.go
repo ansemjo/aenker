@@ -20,13 +20,10 @@ func init() {
 	AddKeygenCommand(RootCommand)
 }
 
-// dummy that is maybe declared in pbkdf.go init()
+// Placeholder that is maybe declared in pbkdf.go init() if pbkdf build tag given
 var AddPbkdfCommand func(*cobra.Command) *cobra.Command
 
 // AddKeygenCommand add the key generator and pubkey converter subcommands to a cobra command.
-//
-// It can be disabled by building with the tag 'nokeygen' to save some space. You can use
-// https://github.com/ansemjo/curvekey instead.
 func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 
 	var private *cf.FileFlag
@@ -34,10 +31,10 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:     "keygen",
-		Aliases: []string{"kg"},
+		Aliases: []string{"kg", "gen"},
 		Short:   "generate a new keypair",
-		Long:    "Generate and save a new keypair.",
-		Example: "aenker kg -p publickey -o secretkey",
+		Long:    "Generate and save a new random Curve25519 keypair.",
+		Example: "  aenker kg -p publickey -o secretkey",
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// output file
