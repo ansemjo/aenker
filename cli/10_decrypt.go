@@ -17,12 +17,8 @@ import (
 func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 
 	var key *cf.Key32Flag
-
 	var input *cf.FileFlag
 	var output *cf.FileFlag
-
-	var password bool
-	var salt string
 
 	command := &cobra.Command{
 
@@ -30,7 +26,7 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 		Aliases: []string{"decrypt", "d"},
 		Short:   "decrypt a file",
 		Long:    "Decrypt a file and output authenticated plaintext.",
-		Example: "aenker open -i archive.tar.gz.ae -p -s mysalt | tar xz",
+		Example: "aenker open -i archive.tar.gz.ae -k ~/.aenker | tar xz",
 
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
@@ -39,23 +35,14 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 				return
 			}
 
-			ch := func(n string) bool {
-				return cmd.Flag(n).Changed
-			}
-			if !(ch("key") || ch("password")) || (ch("key") && ch("password")) {
-				err = errors.New("either key or password required")
+			if !cmd.Flag("key").Changed {
+				err = errors.New("key is required")
 			}
 
 			return
 		},
 
 		Run: func(cmd *cobra.Command, args []string) {
-
-			if password {
-				key.Key = new([32]byte)
-				err := getpasskey(key.Key, salt, nil)
-				fatal(err)
-			}
 
 			ae, err := ae.NewReader(input.File, key.Key)
 			fatal(err)
@@ -71,10 +58,6 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 
 	// add required private key flag
 	key = cf.AddKey32Flag(command, "key", "k", "your private key", nil)
-
-	// add password flag
-	command.Flags().BoolVarP(&password, "password", "p", false, "derive private key from password")
-	command.Flags().StringVarP(&salt, "salt", "s", "aenker", "salt for password-based key derivation")
 
 	// add input/output flags
 	input = cf.AddFileFlag(command, "input", "i", "input file, ciphertext (default: stdin)",

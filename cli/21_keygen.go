@@ -20,6 +20,9 @@ func init() {
 	AddKeygenCommand(RootCommand)
 }
 
+// dummy that is maybe declared in pbkdf.go init()
+var AddPbkdfCommand func(*cobra.Command) *cobra.Command
+
 // AddKeygenCommand add the key generator and pubkey converter subcommands to a cobra command.
 //
 // It can be disabled by building with the tag 'nokeygen' to save some space. You can use
@@ -29,15 +32,12 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 	var private *cf.FileFlag
 	var public *cf.FileFlag
 
-	var password bool
-	var salt string
-
 	command := &cobra.Command{
 		Use:     "keygen",
 		Aliases: []string{"kg"},
 		Short:   "generate a new keypair",
 		Long:    "Generate and save a new keypair.",
-		Example: "aenker kg --password --salt mysalt -p publickey -o /dev/null",
+		Example: "aenker kg -p publickey -o secretkey",
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// output file
@@ -57,7 +57,7 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
-			// close all open file upon exit
+			// close all open files upon exit
 			defer func() {
 				for _, f := range []*cf.FileFlag{private, public} {
 					if f.File != nil {
@@ -66,20 +66,10 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 				}
 			}()
 
+			// generate new random key
 			key := new([32]byte)
-			if password {
-
-				// derive key from password
-				err = getpasskey(key, salt, os.Stdin)
-				fatal(err)
-
-			} else {
-
-				// generate new random key
-				_, err = io.ReadFull(rand.Reader, key[:])
-				fatal(err)
-
-			}
+			_, err = io.ReadFull(rand.Reader, key[:])
+			fatal(err)
 
 			// write encoded key to file
 			if private.File == os.Stdout {
@@ -111,11 +101,11 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)",
 		cf.Truncate(0644), os.Stdout)
 
-	// add the password flag
-	command.Flags().BoolVar(&password, "password", false, "derive key from password")
-	command.Flags().StringVar(&salt, "salt", "aenker", "salt for password-based key derivation")
-
+	// add subcommands
 	AddPubkeyCommand(command)
+	if AddPbkdfCommand != nil {
+		AddPbkdfCommand(command)
+	}
 	parent.AddCommand(command)
 	return command
 }

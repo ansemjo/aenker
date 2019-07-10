@@ -23,7 +23,7 @@ func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "pubkey",
 		Aliases: []string{"pk"},
-		Short:   "calculate public key",
+		Short:   "derive public key",
 		Long:    "Calculate the public key of a Curve25519 private key.",
 		Example: "head -c32 /dev/urandom | base64 > secretkey\naenker kg pubkey < secretkey > publickey",
 
