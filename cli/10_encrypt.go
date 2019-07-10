@@ -9,7 +9,6 @@ import (
 
 	"github.com/ansemjo/aenker/ae"
 	cf "github.com/ansemjo/aenker/cli/cobraflags"
-	kd "github.com/ansemjo/aenker/keyderivation"
 	"github.com/spf13/cobra"
 )
 
@@ -20,8 +19,6 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 
 	var input *cf.FileFlag
 	var output *cf.FileFlag
-
-	var symmteric bool
 
 	command := &cobra.Command{
 
@@ -36,10 +33,6 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 		},
 
 		Run: func(cmd *cobra.Command, args []string) {
-
-			if symmteric {
-				key.Key = kd.Public(key.Key)
-			}
 
 			ae, err := ae.NewWriter(output.File, key.Key)
 			fatal(err)
@@ -63,9 +56,6 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 		cf.Readonly(), os.Stdin)
 	output = cf.AddFileFlag(command, "output", "o", "output file, ciphertext (default: stdout)",
 		cf.Truncate(0644), os.Stdout)
-
-	// add 'symmteric' flag
-	command.Flags().BoolVar(&symmteric, "symmetric", false, "peer key is private, effectively symmetric encryption")
 
 	parent.AddCommand(command)
 	return command
