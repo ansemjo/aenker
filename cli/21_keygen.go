@@ -19,15 +19,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// try to assemble default keyfile path
-var defaultkey = func() string {
-	if home, err := os.UserHomeDir(); err == nil {
-		return path.Join(home, ".local", "share", "aenker", "aenkerkey")
-	} else {
-		return path.Join("./", "aenkerkey") // fallback to current dir
-	}
-}()
-
 func init() {
 	AddKeygenCommand(RootCommand)
 }
@@ -43,7 +34,7 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "keygen",
 		Aliases: []string{"kg", "gen"},
-		Short:   "generate a new keypair",
+		Short:   "generate a new key",
 		Long:    "Generate and save a new random Curve25519 keypair.",
 		Example: "  aenker kg -p publickey -o secretkey",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

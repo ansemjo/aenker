@@ -6,6 +6,7 @@ package cli
 
 import (
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 )
@@ -22,16 +23,13 @@ recipient's public key, while only the recipient can decrypt any of those files
 afterwards.`,
 }
 
-// Initialize cobra commander, disable sorting and
-// add commands. We do that here instead of in individual
-// file init()s because we want to define the sorting manually.
+// Initialize cobra commander and disable sorting. When added via a
+// file's init() function, they will appear in lexicographical order
+// of their respective files.
 func init() {
 	this := RootCommand
 	cobra.EnableCommandSorting = false
 	this.Flags().SortFlags = false
-
-	AddEncryptCommand(this)
-	AddDecryptCommand(this)
 }
 
 // Execute is the main function. It starts the cobra commander for the RootCommand 'aenker',
@@ -41,3 +39,12 @@ func Execute() {
 		os.Exit(1)
 	}
 }
+
+// the default secret key used by several commands
+var defaultkey = func() string {
+	if home, err := os.UserHomeDir(); err == nil {
+		return path.Join(home, ".local", "share", "aenker", "aenkerkey")
+	} else {
+		return path.Join("./", "aenkerkey") // fallback to current dir
+	}
+}()

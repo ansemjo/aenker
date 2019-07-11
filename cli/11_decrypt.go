@@ -13,6 +13,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	AddDecryptCommand(RootCommand)
+}
+
 // AddDecryptCommand adds the decryption subcommand to a cobra command.
 func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 
@@ -24,7 +28,7 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 
 		Use:     "open",
 		Aliases: []string{"decrypt", "d"},
-		Short:   "decrypt a file",
+		Short:   "decrypt and authenticate a file",
 		Long:    "Decrypt a file and output authenticated plaintext.",
 		Example: "  aenker open -i archive.tar.gz.ae | tar -xz",
 

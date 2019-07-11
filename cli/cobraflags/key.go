@@ -16,6 +16,7 @@ import (
 
 type Key32Flag struct {
 	Key   *[32]byte
+	File  string
 	Check func(cmd *cobra.Command, args []string) error
 }
 
@@ -34,6 +35,7 @@ func AddKey32Flag(cmd *cobra.Command, flag, short, defval, usage string, fallbac
 				// given string is a valid key
 				if is32ByteBase64Encoded(*str) {
 					kf.Key, err = decodeKey(*str)
+					kf.File = "argument"
 
 				} else {
 					// assume any other string to be a filename
@@ -44,11 +46,13 @@ func AddKey32Flag(cmd *cobra.Command, flag, short, defval, usage string, fallbac
 					}
 					defer file.Close()
 					kf.Key, err = decodeKeyFile(file)
+					kf.File = file.Name()
 				}
 
 			} else if fallback != nil {
 				// if flag was not given but a fallback was defined
 				kf.Key, err = decodeKeyFile(fallback)
+				kf.File = fallback.Name()
 			}
 
 			// if neither Key will remain nil!

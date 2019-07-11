@@ -12,6 +12,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	AddEncryptCommand(RootCommand)
+}
+
 // AddEncryptCommand adds the encryption subcommand to a cobra command.
 func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 
@@ -24,7 +28,7 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 
 		Use:     "seal",
 		Aliases: []string{"encrypt", "e"},
-		Short:   "encrypt a file",
+		Short:   "encrypt and protect a file",
 		Long:    "Encrypt a file for a recipient's public key and output authenticated ciphertext.",
 		Example: "  tar -cz * | aenker seal -p $PUBLICKEY > archive.tar.gz.ae",
 
