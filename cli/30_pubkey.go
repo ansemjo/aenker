@@ -61,7 +61,7 @@ When called as "show" a formatted seal command will be printed.`,
 	command.Flags().SortFlags = false
 
 	// add the input keyfile flag
-	private = cf.AddKey32Flag(command, "key", "k", defaultkey, "private key (default: stdin)", os.Stdin)
+	private = cf.AddKey32Flag(command, "key", "k", defaultkey, "private key", os.Stdin)
 
 	parent.AddCommand(command)
 	return command
