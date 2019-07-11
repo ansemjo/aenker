@@ -19,6 +19,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// try to assemble default keyfile path
+var defaultkey = func() string {
+	if home, err := os.UserHomeDir(); err == nil {
+		return path.Join(home, ".local", "share", "aenker", "aenkerkey")
+	} else {
+		return path.Join("./", "aenkerkey") // fallback to current dir
+	}
+}()
+
 func init() {
 	AddKeygenCommand(RootCommand)
 }
@@ -37,23 +46,6 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 		Short:   "generate a new keypair",
 		Long:    "Generate and save a new random Curve25519 keypair.",
 		Example: "  aenker kg -p publickey -o secretkey",
-		// PreRunE: func(cmd *cobra.Command, args []string) (err error) {
-
-		// 	// output file
-		// 	err = private.Open(cmd, args)
-		// 	if err != nil {
-		// 		return
-		// 	}
-
-		// 	// public key file
-		// 	err = public.Open(cmd, args)
-		// 	if err != nil {
-		// 		os.Remove(private.File.Name())
-		// 		return
-		// 	}
-
-		// 	return
-		// },
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// format returned errors
@@ -76,14 +68,7 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 			}
 			defer kf.Close()
 
-			// open pubkeyfile
-			pf, err := os.OpenFile(keyfile+".pub", os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0644)
-			if err != nil {
-				return
-			}
-			defer pf.Close()
-
-			// generate some metadata
+			// generate some metadata to embed in keyfile
 			username := func() string {
 				u, e := user.Current()
 				if e == nil {
@@ -99,53 +84,44 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 				return "unknown"
 			}()
 			timestamp := time.Now().UTC().Format(time.RFC3339)
-			metadata := fmt.Sprintf("# aenker key: %s@%s, %s\n", username, hostname, timestamp)
 
-			// maybe quote and append the comment
-			if cmd.Flag("comment").Changed {
-				metadata += fmt.Sprintf("# comment: %s\n", strconv.Quote(comment))
-			}
+			// prepare a file header from metadata
+			header := fmt.Sprintf("# aenker secret key: %s@%s, %s\n", username, hostname, timestamp)
 
 			// generate new random key
-			key := new([32]byte)
-			_, err = io.ReadFull(rand.Reader, key[:])
+			seckey := new([32]byte)
+			_, err = io.ReadFull(rand.Reader, seckey[:])
 			fatal(err)
 
-			// calculate public key
-			pub := keyderivation.Public(key)
+			// calculate public key and encode to base64
+			pubkey := base64(keyderivation.Public(seckey)[:])
 
-			// replace with base64
-			keystr, pubstr := base64(key[:]), base64(pub[:])
+			// append pubkey to header
+			header += fmt.Sprintf("# your public key: %s\n", pubkey)
 
-			// save to files
-			if _, err = kf.WriteString(metadata + keystr + "\n"); err != nil {
-				return
+			// prepare comment if present and append
+			if cmd.Flag("comment").Changed {
+				header += fmt.Sprintf("# comment: %s\n", strconv.Quote(comment))
 			}
-			if _, err = pf.WriteString(metadata + pubstr + "\n"); err != nil {
+
+			// save secret key to file
+			if _, err = kf.WriteString(header + base64(seckey[:]) + "\n"); err != nil {
 				return
 			}
 
 			// print info to stdout
-			fmt.Printf(`new keypair saved in %q
+			fmt.Printf(`new key saved in %q
 your public key is: %s
 use the following command to encrypt files for this key:
 
   aenker seal -p %s ...
 
-`, keyfile+"{,.pub}", pubstr, pubstr)
+`, keyfile, pubkey, pubkey)
 
 			return
 		},
 	}
 	command.Flags().SortFlags = false
-
-	// try to assemble default keyfile path
-	var defaultkey string
-	if home, err := os.UserHomeDir(); err != nil {
-		defaultkey = path.Join("./", "aenker") // fallback to current dir
-	} else {
-		defaultkey = path.Join(home, ".local", "share", "aenker", "aenker")
-	}
 
 	// define flags for parsing
 	command.Flags().StringVarP(&keyfile, "file", "f", defaultkey, "save key to this file")
@@ -156,6 +132,8 @@ use the following command to encrypt files for this key:
 	if AddPbkdfCommand != nil {
 		AddPbkdfCommand(command)
 	}
+
+	// add to parent
 	parent.AddCommand(command)
 	return command
 }
