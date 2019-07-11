@@ -23,8 +23,10 @@ func init() {
 	AddKeygenCommand(RootCommand)
 }
 
-// Placeholder that is maybe declared in pbkdf.go init() if pbkdf build tag given
-var AddPbkdfCommand func(*cobra.Command) *cobra.Command
+// Placeholder that is maybe overwritten in pbkdf.go init() if pbkdf build tag given
+var AddPbkdfCommand = func(c *cobra.Command) *cobra.Command {
+	return c
+}
 
 // AddKeygenCommand add the key generator and pubkey converter subcommands to a cobra command.
 func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
@@ -48,63 +50,22 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 				}
 			}()
 
-			// ensure directory exists
-			if err = os.MkdirAll(path.Dir(keyfile), 0755); err != nil {
-				return
-			}
-
-			// open keyfile
-			kf, err := os.OpenFile(keyfile, os.O_EXCL|os.O_WRONLY|os.O_CREATE, 0600)
-			if err != nil {
-				return
-			}
-			defer kf.Close()
-
-			// generate some metadata to embed in keyfile
-			username := func() string {
-				u, e := user.Current()
-				if e == nil {
-					return u.Username
-				}
-				return "unknown"
-			}()
-			hostname := func() string {
-				h, e := os.Hostname()
-				if e == nil {
-					return h
-				}
-				return "unknown"
-			}()
-			timestamp := time.Now().UTC().Format(time.RFC3339)
-
-			// prepare a file header from metadata
-			header := fmt.Sprintf("# aenker secret key: %s@%s, %s\n", username, hostname, timestamp)
-
 			// generate new random key
 			seckey := new([32]byte)
-			_, err = io.ReadFull(rand.Reader, seckey[:])
-			fatal(err)
-
-			// calculate public key and encode to base64
-			pubkey := base64(keyderivation.Public(seckey)[:])
-
-			// append pubkey to header
-			header += fmt.Sprintf("# your public key: %s\n", pubkey)
-
-			// prepare comment if present and append
-			if cmd.Flag("comment").Changed {
-				header += fmt.Sprintf("# comment: %s\n", strconv.Quote(comment))
+			if _, err = io.ReadFull(rand.Reader, seckey[:]); err != nil {
+				return
 			}
 
-			// save secret key to file
-			if _, err = kf.WriteString(header + base64(seckey[:]) + "\n"); err != nil {
+			// write to file and return pubkey
+			pubkey, err := writeKey(seckey, keyfile, comment)
+			if err != nil {
 				return
 			}
 
 			// print info to stdout
-			fmt.Printf(`new key saved in %q
-your public key is: %s
-use the following command to encrypt files for this key:
+			fmt.Printf(`New key saved in %q.
+Your public key is: %s
+Use the following command to encrypt files for this key:
 
   aenker seal -p %s ...
 
@@ -121,11 +82,75 @@ use the following command to encrypt files for this key:
 
 	// add subcommands
 	AddPubkeyCommand(command)
-	if AddPbkdfCommand != nil {
-		AddPbkdfCommand(command)
-	}
+	AddPbkdfCommand(command)
 
 	// add to parent
 	parent.AddCommand(command)
 	return command
+}
+
+// writeKey is the internal function of the keygen, that writes a newly generated key
+// to a file with some metadata and comments
+func writeKey(key *[32]byte, file, comment string) (pubkey string, err error) {
+
+	// ensure directory exists
+	if err = os.MkdirAll(path.Dir(file), 0755); err != nil {
+		return
+	}
+
+	// create regular files exclusively (will error if it exists)
+	create, err := func() (flag int, err error) {
+		stat, err := os.Stat(file)
+		if os.IsNotExist(err) || (err == nil && stat.Mode().IsRegular()) {
+			return os.O_CREATE, nil
+		}
+		return 0, err
+	}()
+
+	// open keyfile
+	kf, err := os.OpenFile(file, os.O_WRONLY|os.O_TRUNC|os.O_EXCL|create, 0600)
+	if err != nil {
+		return
+	}
+	defer kf.Close()
+
+	// generate some metadata to embed in keyfile
+	username := func() string {
+		u, e := user.Current()
+		if e == nil {
+			return u.Username
+		}
+		return "unknown"
+	}()
+	hostname := func() string {
+		h, e := os.Hostname()
+		if e == nil {
+			return h
+		}
+		return "unknown"
+	}()
+	timestamp := time.Now().UTC().Format(time.RFC3339)
+
+	// prepare a file header from metadata
+	header := fmt.Sprintf("# aenker secret key: %s@%s, %s\n", username, hostname, timestamp)
+
+	// calculate public key and encode to base64
+	pubkey = base64(keyderivation.Public(key)[:])
+
+	// append pubkey to header
+	header += fmt.Sprintf("# your public key: %s\n", pubkey)
+
+	// format comment if present and append
+	if comment != "" {
+		header += fmt.Sprintf("# comment: %s\n", strconv.Quote(comment))
+	}
+
+	// save secret key to file
+	if _, err = kf.WriteString(header + base64(key[:]) + "\n"); err != nil {
+		return
+	}
+
+	// return publickey
+	return
+
 }

@@ -27,7 +27,8 @@ func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 		Short:   "print public key",
 		Long: `Calculate the public key of a Curve25519 private key by performing a base point
 multiplication. You could use any source of 32 random bytes as input.
-When called as "show" a formatted seal command will be shown.`,
+
+When called as "show" a formatted seal command will be printed.`,
 		Example: `  # show default key
   aenker show
 
