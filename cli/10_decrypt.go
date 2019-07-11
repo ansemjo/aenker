@@ -4,7 +4,7 @@
 package cli
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"os"
 
@@ -26,17 +26,18 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 		Aliases: []string{"decrypt", "d"},
 		Short:   "decrypt a file",
 		Long:    "Decrypt a file and output authenticated plaintext.",
-		Example: "  aenker open -k ~/.aenker -i archive.tar.gz.ae | tar xz",
+		Example: "  aenker open -i archive.tar.gz.ae | tar -xz",
 
 		PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
-			err = cf.CheckAll(cmd, args, key.Check, input.Open, output.Open)
-			if err != nil {
+			// check in/out flags
+			if err = cf.CheckAll(cmd, args, input.Open, output.Open); err != nil {
 				return
 			}
 
-			if !cmd.Flag("key").Changed {
-				err = errors.New("key is required")
+			// check key flag
+			if err = key.Check(cmd, args); err != nil {
+				err = fmt.Errorf("key is required: %s", err)
 			}
 
 			return
@@ -57,7 +58,7 @@ func AddDecryptCommand(parent *cobra.Command) *cobra.Command {
 	command.Flags().SortFlags = false
 
 	// add required private key flag
-	key = cf.AddKey32Flag(command, "key", "k", "your private key", nil)
+	key = cf.AddKey32Flag(command, "key", "k", defaultkey, "your private key", nil)
 
 	// add input/output flags
 	input = cf.AddFileFlag(command, "input", "i", "input file, ciphertext (default: stdin)",

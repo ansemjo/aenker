@@ -21,15 +21,15 @@ type Key32Flag struct {
 
 // AddKey32Flag adds a flag to a command, which can either be a valid base64
 // string or a filename for a 32 byte key. Optionally reads from stdin.
-func AddKey32Flag(cmd *cobra.Command, flag, short, usage string, fallback *os.File) (kf *Key32Flag) {
+func AddKey32Flag(cmd *cobra.Command, flag, short, defval, usage string, fallback *os.File) (kf *Key32Flag) {
 
 	// add flag to command
-	str := cmd.Flags().StringP(flag, short, "", usage)
+	str := cmd.Flags().StringP(flag, short, defval, usage)
 
 	// return struct with check function for PreRunE
 	return &Key32Flag{
 		Check: func(cmd *cobra.Command, args []string) (err error) {
-			if cmd.Flag(flag).Changed {
+			if cmd.Flag(flag).Changed || defval != "" {
 
 				// given string is a valid key
 				if is32ByteBase64Encoded(*str) {

@@ -23,7 +23,7 @@ func AddPubkeyCommand(parent *cobra.Command) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "pubkey",
 		Aliases: []string{"pk"},
-		Short:   "derive public key from secret key",
+		Short:   "show public key for a secret key",
 		Long: `Calculate the public key of a Curve25519 private key by performing a base point
 multiplication. You could use any source of 32 random bytes as input.`,
 		Example: "  head -c32 /dev/urandom | base64 > mykey\n  aenker kg pk -k mykey > mykey.pub",
@@ -46,7 +46,7 @@ multiplication. You could use any source of 32 random bytes as input.`,
 	command.Flags().SortFlags = false
 
 	// add the output file flags
-	private = cf.AddKey32Flag(command, "key", "k", "private key (default: stdin)", os.Stdin)
+	private = cf.AddKey32Flag(command, "key", "k", defaultkey, "private key (default: stdin)", os.Stdin)
 	public = cf.AddFileFlag(command, "pubkey", "p", "write public key to file (default: stdout)",
 		cf.Exclusive(0644), os.Stdout)
 

@@ -26,7 +26,7 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 		Aliases: []string{"encrypt", "e"},
 		Short:   "encrypt a file",
 		Long:    "Encrypt a file for a recipient's public key and output authenticated ciphertext.",
-		Example: "  tar cz * | aenker seal -p publickey > archive.tar.gz.ae",
+		Example: "  tar -cz * | aenker seal -p $PUBLICKEY > archive.tar.gz.ae",
 
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return cf.CheckAll(cmd, args, key.Check, input.Open, output.Open)
@@ -48,7 +48,7 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 	command.Flags().SortFlags = false
 
 	// add required peer key flag
-	key = cf.AddKey32Flag(command, "peer", "p", "receiver's public key", nil)
+	key = cf.AddKey32Flag(command, "peer", "p", "", "receiver's public key", nil)
 	command.MarkFlagRequired("peer")
 
 	// add input/output flags
