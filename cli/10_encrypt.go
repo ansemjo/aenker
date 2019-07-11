@@ -32,6 +32,7 @@ func AddEncryptCommand(parent *cobra.Command) *cobra.Command {
 		Long:    "Encrypt a file for a recipient's public key and output authenticated ciphertext.",
 		Example: "  tar -cz * | aenker seal -p $PUBLICKEY > archive.tar.gz.ae",
 
+		Args: cf.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return cf.CheckAll(cmd, args, key.Check, input.Open, output.Open)
 		},

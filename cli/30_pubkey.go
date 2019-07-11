@@ -35,9 +35,11 @@ When called as "show" a formatted seal command will be shown.`,
   head -c32 /dev/urandom | base64 > mykey
   aenker pk -k mykey > mykey.pub`,
 
+		Args: cf.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return private.Check(cmd, args)
 		},
+
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			// calculate public key
@@ -57,7 +59,7 @@ When called as "show" a formatted seal command will be shown.`,
 	}
 	command.Flags().SortFlags = false
 
-	// add the output file flags
+	// add the input keyfile flag
 	private = cf.AddKey32Flag(command, "key", "k", defaultkey, "private key (default: stdin)", os.Stdin)
 
 	parent.AddCommand(command)

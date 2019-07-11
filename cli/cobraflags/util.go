@@ -6,6 +6,8 @@
 package cobraflags
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +18,14 @@ func CheckAll(cmd *cobra.Command, args []string, checker ...func(*cobra.Command,
 		if err != nil {
 			return
 		}
+	}
+	return
+}
+
+// similar to cobra.NoArgs but returns more appropriate error string
+func NoArgs(cmd *cobra.Command, args []string) (err error) {
+	if len(args) > 0 {
+		return errors.New("this command does not accept any positional arguments")
 	}
 	return
 }

@@ -35,6 +35,8 @@ func init() {
 			Long: `Generate and save a new Curve25519 keypair by deriving it from a password with
 Argon2i. The cost settings are predefined as time=32, memory=256MB, threads=4.`,
 			Example: "  aenker kg pbkdf -s mysaltstring -o mykey -p mykey.pub",
+
+			Args: cf.NoArgs,
 			PreRunE: func(cmd *cobra.Command, args []string) (err error) {
 
 				// output file
@@ -52,6 +54,7 @@ Argon2i. The cost settings are predefined as time=32, memory=256MB, threads=4.`,
 
 				return
 			},
+
 			RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 				// close all open file upon exit
