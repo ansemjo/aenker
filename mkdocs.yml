@@ -1,0 +1,14 @@
+site_name: ansemjo/aenker
+theme: readthedocs
+use_directory_urls: false
+nav:
+  - README: index.md
+  - Specification: SPECIFICATION.md
+  - Manual:
+    - aenker: manual/aenker.md
+    - Encrypt files: manual/aenker_seal.md
+    - Decrypt files: manual/aenker_open.md
+    - Generate new key: manual/aenker_keygen.md
+    - Print public key: manual/aenker_pubkey.md
+    - Generate autocompletion: manual/aenker_docs_completion.md
+    - Generate manpages: manual/aenker_docs_manual.md

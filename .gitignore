@@ -2,11 +2,9 @@
 vendor/
 .vscode/
 
-# all but markdown documents
-docs/*
-!docs/*.md
-
 # compiled / built files
 aenker
 release/
 package/
+docs/
+site/
