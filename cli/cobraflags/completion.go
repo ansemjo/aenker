@@ -38,12 +38,7 @@ func AddCompletionCommand(parent, root *cobra.Command) *cobra.Command {
 		},
 	}
 
-	file = AddFileFlag(command,
-		"out", "o", "output completion script to file",
-		func(name string) (*os.File, error) {
-			return os.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
-		},
-		os.Stdout)
+	file = AddFileFlag(command, "out", "o", "output completion script to file", Truncate(0644), os.Stdout)
 
 	parent.AddCommand(command)
 	return command

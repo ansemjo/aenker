@@ -50,7 +50,7 @@ func Exclusive(mode os.FileMode) func(name string) (*os.File, error) {
 	}
 }
 
-// Truncate is a fileopene for FileFlag, which truncates any exiting file or
+// Truncate is a fileopener for FileFlag, which truncates any exiting file or
 // creates a new one if it does not exist.
 func Truncate(mode os.FileMode) func(name string) (*os.File, error) {
 	return func(name string) (*os.File, error) {
