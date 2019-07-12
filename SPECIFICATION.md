@@ -2,6 +2,9 @@
 
 ![](assets/overview.png)
 
+There is a small [decryption script](assets/decrypt.py) written in Python. It should provide an
+easily readable overview of the inner workings.
+
 ## File Format
 
 First of all, the on-disk format of a file encrypted with `aenker` looks like this:
