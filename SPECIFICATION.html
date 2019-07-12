@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <title>Specification - ansemjo/aenker</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Specification";
+    var mkdocs_page_input_path = "SPECIFICATION.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="js/jquery-2.1.1.min.js" defer></script>
+  <script src="js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="icon icon-home"> ansemjo/aenker</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="index.html">README</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="SPECIFICATION.html">Specification</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#specification">Specification</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#file-format">File Format</a></li>
+        
+            <li><a class="toctree-l3" href="#chunking">Chunking</a></li>
+        
+            <li><a class="toctree-l3" href="#key-derivation">Key Derivation</a></li>
+        
+            <li><a class="toctree-l3" href="#encryption">Encryption</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Manual</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="manual/aenker.html">aenker</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="manual/aenker_seal.html">Encrypt files</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="manual/aenker_open.html">Decrypt files</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="manual/aenker_keygen.html">Generate new key</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="manual/aenker_pubkey.html">Print public key</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="manual/aenker_docs_completion.html">Generate autocompletion</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="manual/aenker_docs_manual.html">Generate manpages</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">ansemjo/aenker</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Specification</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="specification">Specification</h1>
+<p><img alt="" src="assets/overview.png" /></p>
+<p>There is a small <a href="assets/decrypt.py">decryption script</a> written in Python. It should provide an
+easily readable overview of the inner workings.</p>
+<h2 id="file-format">File Format</h2>
+<p>First of all, the on-disk format of a file encrypted with <code>aenker</code> looks like this:</p>
+<p><img alt="" src="assets/on_disk.png" /></p>
+<p>The first eight bytes are 'magic bytes' to recognize files encrypted with aenker. The bytes
+<code>\xe7\x9e</code> are the first two bytes of the Blake2b hash of the word 'aenker':</p>
+<pre><code>&gt;&gt;&gt; hashlib.blake2b(b'aenker').digest()[:2]
+b'\xe7\x9e'
+</code></pre>
+<p>The salt is randomly generated and is used in conjunction with the private part of the stored
+ephemeral public key to derive the chunk encryption key.</p>
+<h2 id="chunking">Chunking</h2>
+<p>The incoming plaintext is split into equal parts of length <code>chunksize</code>. To be more precise, it is
+split into equal parts of length <code>chunksize-1</code> and is then <a href="https://godoc.org/github.com/ansemjo/aenker/padding">padded</a> to the
+full <code>chunksize</code> length.</p>
+<p>Data is padded with either <code>\x00</code> or <code>\x01</code>, depending on the last byte of input data, and then a
+marker byte is appended, which indicates whether this is a running chunk, a final chunk without padding
+or a final chunk with padding.</p>
+<table>
+<thead>
+<tr>
+<th>padding byte</th>
+<th>if ...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\x01</code></td>
+<td>last data byte is <code>\x00</code></td>
+</tr>
+<tr>
+<td><code>\x00</code></td>
+<td>last data byte is <strong>NOT</strong> <code>\x00</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>final byte</th>
+<th>chunk type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\x00</code></td>
+<td>running chunk, at least one more following</td>
+</tr>
+<tr>
+<td><code>\x01</code></td>
+<td>final chunk, no padding</td>
+</tr>
+<tr>
+<td><code>\x02</code></td>
+<td>final chunk, padding was added</td>
+</tr>
+</tbody>
+</table>
+<p>In the <code>aenker</code> commandline tool the chunksize is fixed at <code>1984</code>. This results in exactly 2 kB
+ciphertext for small messages and padding and overhead losses approach &lt; 1% for messages larger than
+1 MB.</p>
+<p><img alt="" src="assets/padding.png" /></p>
+<h2 id="key-derivation">Key Derivation</h2>
+<p>When encrypting to a recipient's public key, a random ephemeral private key is generated and
+anonymous Diffie-Hellman is performed. The encryption key is then <a href="https://github.com/ansemjo/aenker/blob/master/keyderivation/elliptic.go#L13">derived</a> from
+the resulting shared key with HKDF using unkeyed Blake2b-384, a random 8 byte salt and the info
+string <code>aenker elliptic</code>:</p>
+<p><img alt="" src="assets/key_derivation_elliptic.png" /></p>
+<p>The ephemeral public key is calculated and then stored in the header, together with the random 8
+byte salt.</p>
+<h2 id="encryption">Encryption</h2>
+<p>Each chunk is <a href="https://github.com/ansemjo/aenker/blob/master/chunkstream/chunkcipherer.go">encrypted</a> with <a href="https://godoc.org/golang.org/x/crypto/chacha20poly1305">ChaCha20Poly1305</a> using a derived
+key per message. Each chunk uses the same key, an incrementing nonce and the serialized file header
+as <a href="https://github.com/ansemjo/aenker/blob/master/ae/aenker.go#L34">associated data</a>.</p>
+<p>Naturally, the authentication tag adds some length to the encrypted data. You have to account for
+that during decryption when reading the chunks back.</p>
+<p>See the package <a href="https://godoc.org/github.com/ansemjo/aenker/chunkstream">chunkstream</a> if you want
+to use this chunked construction in your own application.</p>
+<h3 id="nonce-counter">Nonce Counter</h3>
+<p>The implementation can be seen in <a href="https://github.com/ansemjo/aenker/blob/master/chunkstream/noncecounter.go">noncecounter.go</a>. Basically, it is a
+simple 64-bit incrementing counter which is encoded in LittleEndian into a 12 byte buffer:</p>
+<pre><code>00 00 00 00 00 00 00 00 00 00 00 00
+01 00 00 00 00 00 00 00 00 00 00 00
+02 00 00 00 00 00 00 00 00 00 00 00
+03 00 00 00 00 00 00 00 00 00 00 00
+...
+</code></pre>
+<p>Due to the use of this simple nonce construction, the nonce need not be saved seperately but it
+REQUIRES that a unique key is used for every message. Otherwise message integrity and confidentiality
+could be broken. Hence, an ephemeral keypair is used.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="manual/aenker.html" class="btn btn-neutral float-right" title="aenker">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="README"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="index.html" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="manual/aenker.html" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+
+</body>
+</html>

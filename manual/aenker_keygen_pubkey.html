@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Aenker keygen pubkey - ansemjo/aenker</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Aenker keygen pubkey";
+    var mkdocs_page_input_path = "manual/aenker_keygen_pubkey.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="../index.html" class="icon icon-home"> ansemjo/aenker</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../index.html">README</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../SPECIFICATION.html">Specification</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Manual</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="aenker.html">aenker</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="aenker_seal.html">Encrypt files</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="aenker_open.html">Decrypt files</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="aenker_keygen.html">Generate new key</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="aenker_pubkey.html">Print public key</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="aenker_docs_completion.html">Generate autocompletion</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="aenker_docs_manual.html">Generate manpages</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">ansemjo/aenker</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Aenker keygen pubkey</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h2 id="aenker-keygen-pubkey">aenker keygen pubkey</h2>
+<p>print public key</p>
+<h3 id="synopsis">Synopsis</h3>
+<p>Calculate the public key of a Curve25519 private key by performing a base point
+multiplication. You could use any source of 32 random bytes as input.</p>
+<p>When called as "show" a formatted seal command will be printed.</p>
+<pre><code>aenker keygen pubkey [flags]
+</code></pre>
+
+<h3 id="examples">Examples</h3>
+<pre><code>  # show default key
+  aenker show
+
+  # new keypair from system randomness
+  head -c32 /dev/urandom | base64 &gt; mykey
+  aenker pk -k mykey &gt; mykey.pub
+</code></pre>
+
+<h3 id="options">Options</h3>
+<pre><code>  -k, --key string   private key (default &quot;/home/ansemjo/.local/share/aenker/aenkerkey&quot;)
+  -h, --help         help for pubkey
+</code></pre>
+
+<h3 id="see-also">SEE ALSO</h3>
+<ul>
+<li><a href="aenker_keygen.html">aenker keygen</a>  - generate a new key</li>
+</ul>
+<h6 id="auto-generated-by-spf13cobra-on-12-jul-2019">Auto generated by spf13/cobra on 12-Jul-2019</h6>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
