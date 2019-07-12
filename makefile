@@ -55,12 +55,10 @@ $(COMPLETION_DIR)/$(NAME) : $(NAME)
 # ---------- documentation ----------
 
 # generate local mkdocs directory
-DOCFILES := assets/ LICENSE SPECIFICATION.md
 docs : $(NAME)
-	mkdir -p $@/manual
-	./$< docs manual -d $@/manual markdown
-	find -type f -name '*.go' ! -path './$@/*' -exec install -Dm644 {} $@/{} \;
-	cp -r $(DOCFILES) $@
+	mkdir -p $@
+	./$< docs manual -d $@ markdown
+	cp -r assets/ LICENSE SPECIFICATION.md $@
 	cp README.md $@/index.md
 	@echo 'done. run `mkdocs serve` now ...'
 
