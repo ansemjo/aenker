@@ -1,7 +1,6 @@
 language: go
 go:
-  - 1.11.x
-  - master
+  - stable
 
 dist: xenial
 sudo: no
@@ -19,9 +18,9 @@ install:
 
 script:
   - make test
-  - make build
+  - make
   - make release
-  - make packages DOCKER_BIN=docker
+  - make packages
 
 deploy:
   provider: releases
