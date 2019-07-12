@@ -32,4 +32,3 @@ deploy:
   on:
     repo: ansemjo/aenker
     tags: yes
-    condition: $TRAVIS_GO_VERSION =~ ^1\.11
