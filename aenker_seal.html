@@ -7,23 +7,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   
-  <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>aenker - ansemjo/aenker</title>
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <title>Encrypt files - ansemjo/aenker</title>
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="css/theme_extra.css" type="text/css" />
   <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
   
   <script>
     // Current page data
-    var mkdocs_page_name = "aenker";
-    var mkdocs_page_input_path = "manual/aenker.md";
+    var mkdocs_page_name = "Encrypt files";
+    var mkdocs_page_input_path = "aenker_seal.md";
     var mkdocs_page_url = null;
   </script>
   
-  <script src="../js/jquery-2.1.1.min.js" defer></script>
-  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="js/jquery-2.1.1.min.js" defer></script>
+  <script src="js/modernizr-2.8.3.min.js" defer></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
   <script>hljs.initHighlightingOnLoad();</script> 
   
@@ -36,9 +36,9 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="../index.html" class="icon icon-home"> ansemjo/aenker</a>
+        <a href="index.html" class="icon icon-home"> ansemjo/aenker</a>
         <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
   </form>
 </div>
@@ -50,28 +50,34 @@
           
             <li class="toctree-l1">
 		
-    <a class="" href="../index.html">README</a>
+    <a class="" href="index.html">Home</a>
 	    </li>
           
             <li class="toctree-l1">
 		
-    <a class="" href="../SPECIFICATION.html">Specification</a>
+    <a class="" href="SPECIFICATION.html">Specification</a>
 	    </li>
           
             <li class="toctree-l1">
 		
     <span class="caption-text">Manual</span>
     <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="aenker.html">aenker</a>
+                </li>
                 <li class=" current">
                     
-    <a class="current" href="aenker.html">aenker</a>
+    <a class="current" href="aenker_seal.html">Encrypt files</a>
     <ul class="subnav">
             
-    <li class="toctree-l3"><a href="#aenker">aenker</a></li>
+    <li class="toctree-l3"><a href="#aenker-seal">aenker seal</a></li>
     
         <ul>
         
             <li><a class="toctree-l4" href="#synopsis">Synopsis</a></li>
+        
+            <li><a class="toctree-l4" href="#examples">Examples</a></li>
         
             <li><a class="toctree-l4" href="#options">Options</a></li>
         
@@ -81,10 +87,6 @@
     
 
     </ul>
-                </li>
-                <li class="">
-                    
-    <a class="" href="aenker_seal.html">Encrypt files</a>
                 </li>
                 <li class="">
                     
@@ -119,7 +121,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">ansemjo/aenker</a>
+        <a href="index.html">ansemjo/aenker</a>
       </nav>
 
       
@@ -127,7 +129,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
+    <li><a href="index.html">Docs</a> &raquo;</li>
     
       
         
@@ -135,7 +137,7 @@
         
       
     
-    <li>aenker</li>
+    <li>Encrypt files</li>
     <li class="wy-breadcrumbs-aside">
       
     </li>
@@ -145,25 +147,27 @@
           <div role="main">
             <div class="section">
               
-                <h2 id="aenker">aenker</h2>
+                <h2 id="aenker-seal">aenker seal</h2>
+<p>encrypt and protect a file</p>
 <h3 id="synopsis">Synopsis</h3>
-<p>Aenker is a tool to encrypt files with an authenticated integrated encryption
-scheme by chunking the input into equal parts and sealing them with a key
-derived from an anonymous Diffie-Hellman key exchange on an elliptic curve.</p>
-<p>Many parties can encrypt files for a single recipient by distributing that
-recipient's public key, while only the recipient can decrypt any of those files
-afterwards.</p>
+<p>Encrypt a file for a recipient's public key and output authenticated ciphertext.</p>
+<pre><code>aenker seal [flags]
+</code></pre>
+
+<h3 id="examples">Examples</h3>
+<pre><code>  tar -cz * | aenker seal -p $PUBLICKEY &gt; archive.tar.gz.ae
+</code></pre>
+
 <h3 id="options">Options</h3>
-<pre><code>  -h, --help   help for aenker
+<pre><code>  -p, --peer string     receiver's public key
+  -i, --input string    input file, plaintext (default: stdin)
+  -o, --output string   output file, ciphertext (default: stdout)
+  -h, --help            help for seal
 </code></pre>
 
 <h3 id="see-also">SEE ALSO</h3>
 <ul>
-<li><a href="aenker_docs.html">aenker docs</a>  - generate documentation</li>
-<li><a href="aenker_keygen.html">aenker keygen</a>  - generate a new key</li>
-<li><a href="aenker_open.html">aenker open</a>  - decrypt and authenticate a file</li>
-<li><a href="aenker_pubkey.html">aenker pubkey</a>  - print public key</li>
-<li><a href="aenker_seal.html">aenker seal</a>  - encrypt and protect a file</li>
+<li><a href="aenker.html">aenker</a>    - </li>
 </ul>
 <h6 id="auto-generated-by-spf13cobra-on-12-jul-2019">Auto generated by spf13/cobra on 12-Jul-2019</h6>
               
@@ -173,10 +177,10 @@ afterwards.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="aenker_seal.html" class="btn btn-neutral float-right" title="Encrypt files">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="aenker_open.html" class="btn btn-neutral float-right" title="Decrypt files">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../SPECIFICATION.html" class="btn btn-neutral" title="Specification"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="aenker.html" class="btn btn-neutral" title="aenker"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -202,16 +206,16 @@ afterwards.</p>
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../SPECIFICATION.html" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="aenker.html" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
-        <span style="margin-left: 15px"><a href="aenker_seal.html" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="aenker_open.html" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
-    <script>var base_url = '..';</script>
-    <script src="../js/theme.js" defer></script>
-      <script src="../search/main.js" defer></script>
+    <script>var base_url = '.';</script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
 
 </body>
 </html>
