@@ -51,8 +51,8 @@ func Add(slice *[]byte, final bool, capacity int) (err error) {
 			return errors.New(ErrSize)
 		}
 
-		var pad byte                    // decide which byte to use for padding
-		if (*slice)[length-1] == 0x00 { // if the last data byte is 0x00 ...
+		var pad byte                                  // decide which byte to use for padding
+		if length < 1 || (*slice)[length-1] == 0x00 { // if the last data byte is 0x00 ...
 			pad = 0x01
 		} else {
 			pad = 0x00
