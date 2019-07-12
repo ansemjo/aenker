@@ -12,3 +12,6 @@ nav:
     - Print public key: aenker_pubkey.md
     - Generate autocompletion: aenker_docs_completion.md
     - Generate manpages: aenker_docs_manual.md
+  - GitHub: https://github.com/ansemjo/aenker
+  - GoDocs: https://godoc.org/github.com/ansemjo/aenker
+  - License: LICENSE.md

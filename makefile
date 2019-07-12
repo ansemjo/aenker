@@ -58,8 +58,9 @@ $(COMPLETION_DIR)/$(NAME) : $(NAME)
 docs : $(NAME)
 	mkdir -p $@
 	./$< docs manual -d $@ markdown
-	cp -r assets/ LICENSE SPECIFICATION.md $@
+	cp -r assets/ SPECIFICATION.md $@
 	cp README.md $@/index.md
+	cp LICENSE $@/LICENSE.md
 	@echo 'done. run `mkdocs serve` now ...'
 
 # ---------- packaging ----------
