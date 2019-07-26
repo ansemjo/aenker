@@ -38,7 +38,7 @@ func AddKeygenCommand(parent *cobra.Command) *cobra.Command {
 		Aliases: []string{"kg", "gen"},
 		Short:   "generate a new key",
 		Long:    "Generate and save a new random Curve25519 keypair.",
-		Example: "  aenker kg -p publickey -o secretkey",
+		Example: "  aenker kg -f mykey",
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
