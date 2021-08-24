@@ -26,6 +26,17 @@ errors. Only ciphertext that has been successfully decrypted and authenticated i
 the output. The chunking still alleviates the need to fit the entire file into memory at once or do
 two passes over all data. Thus you can also encrypt files of many gigabytes.
 
+
+## ALTERNATIVE
+
+See the disclaimer below. Even though I took a number of courses on information security
+and cryptography, I would *not* call myself a cryptographer.  
+If you're looking for a **modern** and **well-vetted encryption tool**, you should take a look at
+**[age](https://github.com/FiloSottile/age)** instead.
+
+I believe aenker was started before `age` existed but the latter has seen much more development.
+
+
 ## INSTALLATION
 
 ### Install directly with `go`:
