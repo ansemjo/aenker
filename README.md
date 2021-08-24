@@ -1,7 +1,5 @@
 # aenker
 
-[![Build Status](https://travis-ci.com/ansemjo/aenker.svg?branch=master)](https://travis-ci.com/ansemjo/aenker)
-[![CodeFactor](https://www.codefactor.io/repository/github/ansemjo/aenker/badge)](https://www.codefactor.io/repository/github/ansemjo/aenker)
 [![codebeat badge](https://codebeat.co/badges/0a98d937-6695-4dc1-ba6f-c439226bea01)](https://codebeat.co/projects/github-com-ansemjo-aenker-master)
 
 `aenker` is a simple commandline utility to encrypt files to a public key ([Curve25519][0]) with an
