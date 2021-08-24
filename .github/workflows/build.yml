@@ -1,0 +1,56 @@
+name: release
+
+on:
+  push:
+    branches: [ main,  devel ]
+    tags: [ "*.*.*" ]
+  pull_request:
+    branches: [ main ]
+    types: [ assigned, opened, synchronize, reopened ]
+
+jobs:
+  
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "^1.17.0"
+      
+      - name: Run tests and simple build
+        run: |
+          make test
+          make
+
+      - name: Run release builds with mitchellh/gox
+        run: |
+          go install github.com/mitchellh/gox@latest
+          make release
+
+      - name: Create packages with ansemjo/fpm
+        run: |
+          make packages
+
+      - name: Upload job artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release
+          path: release/*
+          retention-days: 3
+
+      - name: Upload release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          go install github.com/tcnksm/ghr@latest
+          (cd release/ && sha256sum * > SHA256SUMS)
+          ghr -recreate "${GITHUB_REF#refs/tags/}" release/
