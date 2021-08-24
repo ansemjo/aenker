@@ -19,8 +19,9 @@ $(NAME) : $(shell find * -type f -name '*.go') go.mod go.sum
 .PHONY: release
 release :
 	env $(GO_BUILD_ENV) gox $(GO_BUILD_FLAGS) -output='$@/$(NAME)-{{.OS}}-{{.Arch}}' \
-		$(addprefix -os=,linux darwin freebsd openbsd) \
-		$(addprefix -arch=,arm arm64 amd64 ppc64)
+		-os="linux darwin freebsd openbsd windows" \
+		-arch="arm64 amd64 ppc64" \
+		-osarch="linux/arm"
 
 # run golang tests
 .PHONY: test
