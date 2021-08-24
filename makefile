@@ -18,7 +18,9 @@ $(NAME) : $(shell find * -type f -name '*.go') go.mod go.sum
 # cross-compile binaries with gox
 .PHONY: release
 release :
-	env $(GO_BUILD_ENV) gox $(GO_BUILD_FLAGS) -output='$@/$(NAME)-{{.OS}}-{{.Arch}}'
+	env $(GO_BUILD_ENV) gox $(GO_BUILD_FLAGS) -output='$@/$(NAME)-{{.OS}}-{{.Arch}}' \
+		$(addprefix -os=,linux darwin freebsd openbsd) \
+		$(addprefix -arch=,arm arm64 amd64 ppc64)
 
 # run golang tests
 .PHONY: test
@@ -76,7 +78,7 @@ PKGARCH     = $(shell uname -m)
 
 # how to execute fpm
 DOCKER = $(shell which podman || echo docker)
-FPM    = $(DOCKER) run --rm --net none -v $$PWD:/src -w /src ansemjo/fpm:alpine
+FPM    = $(DOCKER) run --rm --net none -v $$PWD:/src -w /src ghcr.io/ansemjo/fpm
 
 # build a package
 .PHONY: package-%
